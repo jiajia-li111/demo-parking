@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tree.plms.mapper.FeeRuleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tree.plms.model.entity.FeeRule">
+        <id column="rule_id" property="ruleId" />
+        <result column="rule_name" property="ruleName" />
+        <result column="apply_to" property="applyTo" />
+        <result column="vehicle_type" property="vehicleType" />
+        <result column="first_hour_fee" property="firstHourFee" />
+        <result column="next_hour_fee" property="nextHourFee" />
+        <result column="daily_cap" property="dailyCap" />
+        <result column="night_start" property="nightStart" />
+        <result column="night_end" property="nightEnd" />
+        <result column="night_rate" property="nightRate" />
+        <result column="effective_date" property="effectiveDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        rule_id, rule_name, apply_to, vehicle_type, first_hour_fee, next_hour_fee, daily_cap, night_start, night_end, night_rate, effective_date
+    </sql>
+
+</mapper>

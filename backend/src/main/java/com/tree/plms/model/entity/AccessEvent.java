@@ -1,0 +1,79 @@
+package com.tree.plms.model.entity;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * <p>
+ * 记录车辆过闸行为
+ * </p>
+ *
+ * @author tree
+ * @since 2025-11-12
+ */
+@Getter
+@Setter
+@TableName("t_access_event")
+public class AccessEvent implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 事件标识（如"e20241105001"）
+     */
+    @TableId("event_id")
+    private String eventId;
+
+    /**
+     * 通道ID
+     */
+    @TableField("gate_id")
+    private String gateId;
+
+    /**
+     * 事件时间（精确到秒）
+     */
+    @TableField("event_time")
+    private LocalDateTime eventTime;
+
+    /**
+     * 关联车辆ID（未识别为null）
+     */
+    @TableField("vehicle_id")
+    private String vehicleId;
+
+    /**
+     * 识别结果（01=成功，02=无牌，03=黑名单）
+     */
+    @TableField("recognition_result")
+    private String recognitionResult;
+
+    /**
+     * 事件类型（01=进场，02=出场）
+     */
+    @TableField("event_type")
+    private String eventType;
+
+    /**
+     * 关联会话ID（出场时必填）
+     */
+    @TableField("session_id")
+    private String sessionId;
+
+    /**
+     * 处理状态（01=放行，02=拦截，03=人工操作）
+     */
+    @TableField("handle_status")
+    private String handleStatus;
+
+    /**
+     * 操作人ID（人工操作时必填）
+     */
+    @TableField("operator_id")
+    private String operatorId;
+}

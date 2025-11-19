@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tree.plms.mapper.SysUserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tree.plms.model.entity.SysUser">
+        <id column="user_id" property="userId" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="role_id" property="roleId" />
+        <result column="department" property="department" />
+        <result column="status" property="status" />
+    </resultMap>
+
+    <resultMap id="userMap" type="com.tree.plms.model.entity.SysUser">
+        <id column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="role_id" property="roleId"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <resultMap id="userVOMap" type="com.tree.plms.model.vo.SysUserVO">
+        <id column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="role_id" property="roleId"/>
+        <result column="role_name" property="roleName"/>
+        <result column="department" property="department"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <!-- 登录查询 -->
+    <select id="selectByUsername" parameterType="String" resultMap="userMap">
+        SELECT user_id, username, password, role_id, status
+        FROM t_sys_user
+        WHERE username = #{username}
+        LIMIT 1
+    </select>
+
+<!--    分页查询-->
+    <select id="selectUserPage" resultMap="userVOMap">
+        SELECT
+            u.user_id ,u.username,u.role_id,r.role_name,
+            u.department,u.status
+        FROM t_sys_user u
+        LEFT JOIN t_role r ON u.role_id = r.role_id
+        <where>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="roleId != null and roleId != ''">
+                AND u.role_id = #{roleId}
+            </if>
+            <if test="status != null and status != ''">
+                AND u.status = #{status}
+            </if>
+        </where>
+        ORDER BY u.user_id DESC
+    </select>
+</mapper>

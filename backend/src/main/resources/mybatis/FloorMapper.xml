@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tree.plms.mapper.FloorMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tree.plms.model.entity.Floor">
+        <id column="floor_id" property="floorId" />
+        <result column="floor_name" property="floorName" />
+        <result column="total_spaces" property="totalSpaces" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        floor_id, floor_name, total_spaces
+    </sql>
+
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.plms.mapper.TPaymentMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.plms.model.entity.TPayment">
+        <id column="payment_id" property="paymentId" />
+        <result column="session_id" property="sessionId" />
+        <result column="amount" property="amount" />
+        <result column="pay_method" property="payMethod" />
+        <result column="pay_time" property="payTime" />
+        <result column="status" property="status" />
+        <result column="transaction_id" property="transactionId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        payment_id, session_id, amount, pay_method, pay_time, status, transaction_id
+    </sql>
+
+</mapper>

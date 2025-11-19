@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.plms.mapper.TParkingSessionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.plms.model.entity.TParkingSession">
+        <id column="session_id" property="sessionId" />
+        <result column="vehicle_id" property="vehicleId" />
+        <result column="card_id" property="cardId" />
+        <result column="entry_time" property="entryTime" />
+        <result column="exit_time" property="exitTime" />
+        <result column="entry_gate_id" property="entryGateId" />
+        <result column="exit_gate_id" property="exitGateId" />
+        <result column="space_id" property="spaceId" />
+        <result column="rule_id" property="ruleId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        session_id, vehicle_id, card_id, entry_time, exit_time, entry_gate_id, exit_gate_id, space_id, rule_id
+    </sql>
+
+</mapper>
