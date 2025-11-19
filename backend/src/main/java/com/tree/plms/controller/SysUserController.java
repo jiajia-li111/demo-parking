@@ -13,15 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * <p>
- * 存储操作人员信息 前端控制器
- * </p>
- *
- * @author tree
- * @since 2025-11-12
+ * 用户管理控制器
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class SysUserController {
     @Resource
     private SysUserService sysUserService;
@@ -36,31 +31,23 @@ public class SysUserController {
     }
 
     /**
-     * 根据ID获取用户信息
-     */
-    @GetMapping("/{userId}")
-    public Result<SysUser> getUserById(@PathVariable String userId) {
-        SysUser user = sysUserService.getUserById(userId);
-        if (user == null) {
-            return Result.fail(ResultCodeEnum.NOT_FOUND, "用户不存在");
-        }
-        return Result.success(user);
-    }
-
-    /**
-     * 新增用户
+     * 创建用户
      */
     @PostMapping
-    public Result<Boolean> addUser(@RequestBody SysUser user) {
+    public Result<Boolean> createUser(@RequestBody SysUser user) {
         boolean success = sysUserService.addUser(user);
-        return success ? Result.success(true) : Result.fail(ResultCodeEnum.SYSTEM_ERROR, "新增失败");
+        return success ? Result.success(true) : Result.fail(ResultCodeEnum.SYSTEM_ERROR, "创建失败");
     }
 
     /**
-     * 更新用户信息
+     * 更新用户
      */
-    @PutMapping
-    public Result<Boolean> updateUser(@RequestBody SysUser user) {
+    @PutMapping("/{userId}")
+    public Result<Boolean> updateUser(@PathVariable String userId, @RequestBody SysUser user) {
+        // 确保路径参数和请求体中的ID一致
+        if (!userId.equals(user.getUserId())) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "用户ID不匹配");
+        }
         boolean success = sysUserService.updateUser(user);
         return success ? Result.success(true) : Result.fail(ResultCodeEnum.SYSTEM_ERROR, "更新失败");
     }

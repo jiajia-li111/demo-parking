@@ -194,4 +194,39 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setPassword(passwordEncoder.encode(newPassword));
         return updateById(user);
     }
+
+    @Override
+    public SysUserVO getCurrentUserByToken(String token) {
+        // 验证token是否有效
+        if (!jwtUtil.validateToken(token)) {
+            throw new BusinessException(ResultCodeEnum.UNAUTHORIZED, "无效的令牌");
+        }
+        
+        // 从token中获取用户ID
+        String userId = jwtUtil.getUserIdFromToken(token);
+        
+        // 查询用户信息
+        SysUser user = getUserById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCodeEnum.NOT_FOUND, "用户不存在");
+        }
+        
+        // 查询角色信息
+        Role role = roleMapper.selectById(user.getRoleId());
+        if (role == null) {
+            throw new BusinessException(ResultCodeEnum.NOT_FOUND, "角色不存在");
+        }
+        
+        // 构建用户VO
+        SysUserVO userVO = new SysUserVO();
+        userVO.setUserId(user.getUserId());
+        userVO.setUsername(user.getUsername());
+        userVO.setRoleId(user.getRoleId());
+        userVO.setRoleName(role.getRoleName());
+        userVO.setDepartment(user.getDepartment());
+        userVO.setStatus(user.getStatus());
+        userVO.setStatusDesc(UserStatusEnum.getDescByCode(user.getStatus()));
+        
+        return userVO;
+    }
 }

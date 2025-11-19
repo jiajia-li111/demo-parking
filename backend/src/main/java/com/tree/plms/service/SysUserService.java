@@ -116,4 +116,11 @@ public interface SysUserService extends IService<SysUser> {
      * @return 是否重置成功
      */
     boolean resetPassword(String userId, String newPassword);
+
+    /**
+     * 根据token获取当前用户信息
+     * @param token JWT令牌
+     * @return 用户信息VO
+     */
+    SysUserVO getCurrentUserByToken(String token);
 }
