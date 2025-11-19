@@ -2,6 +2,7 @@ package com.tree.plms.mapper;
 
 import com.tree.plms.model.entity.AccessEvent;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
@@ -11,6 +12,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author tree
  * @since 2025-11-12
  */
+@Mapper
 public interface AccessEventMapper extends BaseMapper<AccessEvent> {
 
 }

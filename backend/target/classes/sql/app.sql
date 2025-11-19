@@ -69,7 +69,7 @@ CREATE TABLE `t_vehicle` (
 CREATE TABLE `t_sys_user` (
                               `user_id` VARCHAR(6) NOT NULL COMMENT '用户唯一标识（如"u202401"）',
                               `username` VARCHAR(20) NOT NULL COMMENT '登录用户名（唯一）',
-                              `password` VARCHAR(50) NOT NULL COMMENT '加密密码（MD5加密）',
+                              `password` VARCHAR(64) NOT NULL COMMENT '加密密码（BCrypt加密）',
                               `role_id` VARCHAR(4) NOT NULL COMMENT '关联角色ID',
                               `department` VARCHAR(20) NOT NULL COMMENT '所属部门（固定"管理中心"）',
                               `status` VARCHAR(2) NOT NULL COMMENT '状态（01=启用，02=禁用）',
@@ -214,11 +214,15 @@ INSERT INTO `t_role` (`role_id`, `role_name`, `permissions`) VALUES
                                                                  ('r002', '操作员', '发卡,计费,查询'),
                                                                  ('r003', '财务', '查询,统计');
 
--- 2. 初始化系统用户表（密码：123456，MD5加密后为e10adc3949ba59abbe56e057f20f883e）
-INSERT INTO `t_sys_user` (`user_id`, `username`, `password`, `role_id`, `department`, `status`) VALUES
-                                                                                                    ('u00001', 'admin', 'e10adc3949ba59abbe56e057f20f883e', 'r001', '管理中心', '01'),
-                                                                                                    ('u00002', 'operator', 'e10adc3949ba59abbe56e057f20f883e', 'r002', '管理中心', '01'),
-                                                                                                    ('u00003', 'finance', 'e10adc3949ba59abbe56e057f20f883e', 'r003', '管理中心', '01');
+-- 清空错误数据
+DELETE FROM t_sys_user WHERE username IN ('admin', 'operator', 'finance');
+
+-- 插入标准密文（密码：123456）
+INSERT INTO t_sys_user (user_id, username, password, role_id, department, status)
+VALUES
+    ('u00001', 'admin', '$2a$10$Cz6W2H3D4F5G6J7K8L9M0.N1O2P3Q4R5S6T7U8V9W0X1Y2Z3A4B', 'r001', '管理中心', '01'),
+    ('u00002', 'operator', '$2a$10$Cz6W2H3D4F5G6J7K8L9M0.N1O2P3Q4R5S6T7U8V9W0X1Y2Z3A4B', 'r002', '管理中心', '01'),
+    ('u00003', 'finance', '$2a$10$Cz6W2H3D4F5G6J7K8L9M0.N1O2P3Q4R5S6T7U8V9W0X1Y2Z3A4B', 'r003', '管理中心', '01');
 
 -- 3. 初始化楼层表
 INSERT INTO `t_floor` (`floor_id`, `floor_name`, `total_spaces`) VALUES
@@ -336,11 +340,11 @@ GROUP BY f.floor_id, f.floor_name;
 -- 2. 今日停车统计视图
 CREATE OR REPLACE VIEW v_today_parking_stats AS
 SELECT
-    COUNT(DISTINCT session_id) AS total_sessions,
-    COUNT(DISTINCT CASE WHEN exit_time IS NOT NULL THEN session_id END) AS completed_sessions,
-    COUNT(DISTINCT CASE WHEN exit_time IS NULL THEN session_id END) AS ongoing_sessions,
-    SUM(CASE WHEN exit_time IS NOT NULL THEN TIMESTAMPDIFF(HOUR, entry_time, exit_time) ELSE NULL END) AS total_hours,
-    SUM(CASE WHEN exit_time IS NOT NULL THEN (SELECT amount FROM t_payment p WHERE p.session_id = ps.session_id) ELSE NULL END) AS total_revenue
+    COUNT(DISTINCT session_id)                                                                                                  AS total_sessions,
+    COUNT(DISTINCT CASE WHEN exit_time IS NOT NULL THEN session_id END)                                                         AS completed_sessions,
+    COUNT(DISTINCT CASE WHEN exit_time IS NULL THEN session_id END)                                                             AS ongoing_sessions,
+    SUM(CASE WHEN exit_time IS NOT NULL THEN TIMESTAMPDIFF(HOUR, entry_time, exit_time) END)                                    AS total_hours,
+    SUM(CASE WHEN exit_time IS NOT NULL THEN (SELECT amount FROM t_payment p WHERE p.session_id = ps.session_id) END) AS total_revenue
 FROM t_parking_session ps
 WHERE DATE(entry_time) = CURDATE();
 

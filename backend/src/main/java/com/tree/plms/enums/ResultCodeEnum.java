@@ -1,18 +1,8 @@
 package com.tree.plms.enums;
 
 /**
- * @author SuohaChan
- * @data 2025/11/12
- */
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-/**
  * 响应状态码枚举（遵循：系统级错误[1-999]，业务级错误[1000+]）
  */
-@Getter
-@AllArgsConstructor
 public enum ResultCodeEnum {
 
     // ========== 系统级成功 ==========
@@ -44,6 +34,21 @@ public enum ResultCodeEnum {
      * 状态描述（用户友好提示）
      */
     private final String msg;
+
+    // 手动添加构造函数
+    ResultCodeEnum(int code, String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+
+    // 手动添加 getter 方法
+    public int getCode() {
+        return code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
 
     /**
      * 根据code获取枚举
