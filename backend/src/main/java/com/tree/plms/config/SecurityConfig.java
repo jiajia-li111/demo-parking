@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * 安全配置类（提供密码加密器和安全规则配置）
@@ -46,8 +47,10 @@ public class SecurityConfig {
     /**
      * 安全过滤器链配置
      */
+    // 在 SecurityConfig.java 的 securityFilterChain 方法中添加
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, 
+                                                JwtAuthenticationFilter jwtFilter) throws Exception {
         http
             // 禁用CSRF保护，便于开发环境测试
             .csrf(AbstractHttpConfigurer::disable)
@@ -63,8 +66,9 @@ public class SecurityConfig {
             // 禁用表单登录，使用自定义的登录接口
             .formLogin(AbstractHttpConfigurer::disable)
             // 禁用HTTP基本认证
-            .httpBasic(AbstractHttpConfigurer::disable);
-
+            .httpBasic(AbstractHttpConfigurer::disable)
+             // 添加 JWT 过滤器
+             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

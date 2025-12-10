@@ -18,8 +18,8 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    // 令牌过期时间（2小时，单位：毫秒）
-    @Value("${jwt.expiration:7200000}")
+    // 令牌过期时间（3小时，单位：毫秒）
+    @Value("${jwt.expiration:10800000}")
     private long expiration;
 
     // 签名密钥（实际项目中放在配置文件，且长度不少于256位）

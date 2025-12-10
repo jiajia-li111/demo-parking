@@ -28,4 +28,14 @@ public enum UserStatusEnum {
         }
         return "未知状态";
     }
+
+    // 在UserStatusEnum类中添加
+    public static boolean isValidCode(String code) {
+        for (UserStatusEnum status : values()) {
+            if (status.getCode().equals(code)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

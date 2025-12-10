@@ -20,7 +20,11 @@ import com.tree.plms.model.dto.response.Result;
 import jakarta.annotation.Resource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -47,14 +51,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public LoginVO login(LoginReq req) {
         SysUser user = sysUserMapper.selectByUsername(req.getUsername());
+
         if (user == null) {
             throw new BusinessException(ResultCodeEnum.UNAUTHORIZED, "用户名或密码错误");
         }
 
+        // 验证密码
+        System.out.println(user.getPassword());
+        System.out.println(req.getPassword());
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new BusinessException(ResultCodeEnum.UNAUTHORIZED, "用户名或密码错误");
         }
-        System.out.println(user.getPassword());
+
+
 
         if (UserStatusEnum.DISABLED.getCode().equals(user.getStatus())) {
             throw new BusinessException(ResultCodeEnum.FORBIDDEN, "账号已禁用");
@@ -112,17 +121,51 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (getUserByUsername(user.getUsername()) != null) {
             throw new BusinessException(ResultCodeEnum.PARAM_ERROR, "用户名已存在");
         }
-        
+
+        if (user.getUserId() == null) {
+            // 查询当前最大的用户ID
+            QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+            queryWrapper.orderByDesc("user_id");
+            queryWrapper.last("LIMIT 1");
+            SysUser lastUser = baseMapper.selectOne(queryWrapper);
+
+            String newUserId;
+            if (lastUser != null) {
+                // 提取数字部分并加1
+                String lastId = lastUser.getUserId();
+                int num = Integer.parseInt(lastId.substring(1)) + 1;
+                newUserId = String.format("u%05d", num);
+            } else {
+                // 第一个用户
+                newUserId = "u00001";
+            }
+            user.setUserId(newUserId);
+        }
+
         // 加密密码
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        
-        // 设置默认部门
-        if (user.getDepartment() == null) {
+
+        // 定义允许的部门范围
+        Set<String> allowedDepartments = new HashSet<>(Arrays.asList("管理中心", "测试中心", "用户中心"));
+
+        // 检查部门是否在允许范围内
+        System.out.println(user.getDepartment());
+        if (user.getDepartment() != null) {
+            if (!allowedDepartments.contains(user.getDepartment())) {
+                throw new BusinessException(ResultCodeEnum.PARAM_ERROR, "部门不在允许范围内");
+            }
+        } else {
+            // 设置默认部门
             user.setDepartment("管理中心");
         }
-        
-        // 设置默认状态为启用
-        if (user.getStatus() == null) {
+
+        // 检查状态是否在允许范围内
+        if (user.getStatus() != null) {
+            if (!UserStatusEnum.isValidCode(user.getStatus())) {
+                throw new BusinessException(ResultCodeEnum.PARAM_ERROR, "状态值不在允许范围内");
+            }
+        } else {
+            // 设置默认状态为启用
             user.setStatus(UserStatusEnum.ENABLED.getCode());
         }
         
@@ -136,7 +179,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (existingUser == null) {
             throw new BusinessException(ResultCodeEnum.NOT_FOUND, "用户不存在");
         }
-        
+
+        // 检查状态是否在允许范围内
+        if (user.getStatus() != null && !UserStatusEnum.isValidCode(user.getStatus())) {
+            throw new BusinessException(ResultCodeEnum.PARAM_ERROR, "状态值不在允许范围内");
+        }
+
         // 保留原密码
         user.setPassword(existingUser.getPassword());
         

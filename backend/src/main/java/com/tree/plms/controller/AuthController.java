@@ -38,7 +38,6 @@ public class AuthController {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        
         return sysUserService.logout(token);
     }
     

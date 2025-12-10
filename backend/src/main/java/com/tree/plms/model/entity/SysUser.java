@@ -47,7 +47,7 @@ public class SysUser implements Serializable {
     private String roleId;
 
     /**
-     * 所属部门（固定"管理中心"）
+     * 所属部门（"管理中心"、"测试中心"、"用户中心"）
      */
     @TableField("department")
     private String department;

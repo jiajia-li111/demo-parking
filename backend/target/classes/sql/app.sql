@@ -119,12 +119,12 @@ CREATE TABLE `t_sys_user` (
                               `username` VARCHAR(20) NOT NULL COMMENT '登录用户名（唯一）',
                               `password` VARCHAR(64) NOT NULL COMMENT '加密密码（BCrypt加密）',
                               `role_id` VARCHAR(4) NOT NULL COMMENT '关联角色ID',
-                              `department` VARCHAR(20) NOT NULL COMMENT '所属部门（固定"管理中心"）',
+                              `department` VARCHAR(20) NOT NULL COMMENT '所属部门（"管理中心"、"测试中心"、"用户中心"）',
                               `status` VARCHAR(2) NOT NULL COMMENT '状态（01=启用，02=禁用）',
                               PRIMARY KEY (`user_id`),
                               UNIQUE KEY `uk_sys_user_username` (`username`),
                               KEY `idx_user_role` (`role_id`),
-                              CONSTRAINT `ck_user_department` CHECK (`department` = '管理中心'), -- 强制部门为管理中心
+                              CONSTRAINT `ck_user_department` CHECK (`department` IN ('管理中心', '测试中心', '用户中心')), -- 强制部门为管理中心
                               CONSTRAINT `ck_user_status` CHECK (`status` IN ('01', '02')),
                               CONSTRAINT `fk_user_role` FOREIGN KEY (`role_id`) REFERENCES `t_role` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='存储操作人员信息';
@@ -271,9 +271,9 @@ INSERT INTO `t_role` (`role_id`, `role_name`, `permissions`) VALUES
 
 -- 2. 系统用户表（密码：123456，BCrypt加密）
 INSERT INTO `t_sys_user` (`user_id`, `username`, `password`, `role_id`, `department`, `status`) VALUES
-                                                                                                    ('u00001', 'admin', '$2a$10$Cz6W2H3D4F5G6J7K8L9M0.N1O2P3Q4R5S6T7U8V9W0X1Y2Z3A4B', 'r001', '管理中心', '01'),
-                                                                                                    ('u00002', 'operator', '$2a$10$Cz6W2H3D4F5G6J7K8L9M0.N1O2P3Q4R5S6T7U8V9W0X1Y2Z3A4B', 'r002', '管理中心', '01'),
-                                                                                                    ('u00003', 'finance', '$2a$10$Cz6W2H3D4F5G6J7K8L9M0.N1O2P3Q4R5S6T7U8V9W0X1Y2Z3A4B', 'r003', '管理中心', '01');
+                                                                                                    ('u00001', 'admin', '$2a$10$CamVlH2CDusn47lyR1/IOeWsKR6GsKhGypjYrznZveaOtKFPe9c8K', 'r001', '管理中心', '01'),
+                                                                                                    ('u00002', 'operator', '$2a$10$CamVlH2CDusn47lyR1/IOeWsKR6GsKhGypjYrznZveaOtKFPe9c8K', 'r002', '管理中心', '01'),
+                                                                                                    ('u00003', 'finance', '$2a$10$CamVlH2CDusn47lyR1/IOeWsKR6GsKhGypjYrznZveaOtKFPe9c8K', 'r003', '管理中心', '01');
 
 -- 3. 楼层表（两层地下车库）
 INSERT INTO `t_floor` (`floor_id`, `floor_name`, `total_spaces`) VALUES
