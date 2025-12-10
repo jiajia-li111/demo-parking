@@ -11,8 +11,8 @@ spring:
     time-zone: GMT+8
 
 mybatis-plus:
-  mapper-locations: classpath:mybatis/*.xml  # 修改为正确的目录路径
-  type-aliases-package: com.parking.plms.entity
+  mapper-locations: classpath:mybatis/*.xml  # 已修正
+  type-aliases-package: com.tree.plms.model.entity  # 修正包路径
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
