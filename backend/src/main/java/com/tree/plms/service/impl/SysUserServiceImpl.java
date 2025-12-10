@@ -54,6 +54,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new BusinessException(ResultCodeEnum.UNAUTHORIZED, "用户名或密码错误");
         }
+        System.out.println(user.getPassword());
 
         if (UserStatusEnum.DISABLED.getCode().equals(user.getStatus())) {
             throw new BusinessException(ResultCodeEnum.FORBIDDEN, "账号已禁用");
