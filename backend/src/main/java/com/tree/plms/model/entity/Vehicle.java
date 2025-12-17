@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -59,4 +60,11 @@ public class Vehicle implements Serializable {
     @TableField("owner_id")
     @Schema(description = "关联业主ID")
     private String ownerId;
+
+    /**
+     * 是否在停车场内（01=是，02=否）
+     */
+    @TableField("is_parking")
+    @Schema(description = "是否在停车场内")
+    private String isParking;
 }

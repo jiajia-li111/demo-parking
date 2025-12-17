@@ -44,6 +44,9 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     @Resource
     private FeeRuleService feeRuleService; // 新增：注入FeeRuleService
 
+    @Resource
+    private ParkingSessionService parkingSessionService;
+
     @Override
     public Result<EntryResultVO> vehicleEntry(String licensePlate, String gateId) {
         LocalDateTime now = LocalDateTime.now();
@@ -77,6 +80,7 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             
             tempVehicle.setVehicleType("01"); // 默认为小型车
             tempVehicle.setIsOwnerCar("02"); // 非业主车
+            tempVehicle.setIsParking("02");
             
             // 添加临时车辆
             boolean addSuccess = vehicleService.addVehicle(tempVehicle);

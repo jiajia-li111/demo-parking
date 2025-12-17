@@ -4,8 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tree.plms.enums.ResultCodeEnum;
 import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.MonthlyCard;
-import com.tree.plms.model.entity.SysUser;
+import com.tree.plms.model.entity.Vehicle;
 import com.tree.plms.service.MonthlyCardService;
+import com.tree.plms.service.VehicleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -23,6 +24,9 @@ public class MonthlyCardController {
     
     @Resource
     private MonthlyCardService monthlyCardService;
+
+    @Resource
+    private VehicleService vehicleService;
     
     /**
      * 获取月卡列表
@@ -38,8 +42,32 @@ public class MonthlyCardController {
      * 创建月卡
      */
     @PostMapping
-    @Operation(summary = "创建月卡", description = "创建一个新的月卡")
+    @Operation(summary = "创建月卡", description = "根据车牌号创建月卡，仅支持业主车")
     public Result<Boolean> createMonthlyCard(@RequestBody MonthlyCard monthlyCard) {
+        // 1. 验证请求参数中的车牌号
+        String licensePlate = monthlyCard.getVehicleId(); // 这里临时使用vehicleId字段接收车牌号
+        if (licensePlate == null || licensePlate.trim().isEmpty()) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "车牌号不能为空");
+        }
+        
+        // 2. 根据车牌号查询车辆信息
+        Vehicle vehicle = vehicleService.getVehicleByLicensePlate(licensePlate);
+        if (vehicle == null) {
+            return Result.fail(ResultCodeEnum.NOT_FOUND, "该车牌号未绑定车辆");
+        }
+        
+        // 3. 验证车辆是否为业主车
+        if (!"01".equals(vehicle.getIsOwnerCar())) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "只有业主车才能办理月卡");
+        }
+        
+        // 4. 检查该车辆是否已有有效的月卡
+        List<MonthlyCard> existingCards = monthlyCardService.getMonthlyCardsByVehicleId(vehicle.getVehicleId());
+        if (!existingCards.isEmpty()) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "该车辆已有月卡，请勿重复办理");
+        }
+        
+        // 5. 生成月卡ID
         if (monthlyCard.getCardId() == null) {
             // 查询当前最大的月卡ID
             QueryWrapper<MonthlyCard> queryWrapper = new QueryWrapper<>();
@@ -60,6 +88,10 @@ public class MonthlyCardController {
             monthlyCard.setCardId(newCardId);
         }
 
+        // 6. 设置车辆ID到月卡对象
+        monthlyCard.setVehicleId(vehicle.getVehicleId());
+        
+        // 7. 创建月卡
         boolean success = monthlyCardService.addMonthlyCard(monthlyCard);
         return success ? Result.success(true) : Result.fail(ResultCodeEnum.SYSTEM_ERROR, "创建失败");
     }
