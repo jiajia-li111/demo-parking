@@ -9,6 +9,17 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  packages-to-scan: com.tree.plms.controller
+  # 添加OpenAPI基本信息
+
+
 
 mybatis-plus:
   mapper-locations: classpath:mybatis/*.xml  # 已修正

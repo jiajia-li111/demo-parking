@@ -1,10 +1,15 @@
 package com.tree.plms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.tree.plms.enums.ResultCodeEnum;
+import com.tree.plms.exception.BusinessException;
 import com.tree.plms.model.entity.MonthlyCard;
 import com.tree.plms.mapper.MonthlyCardMapper;
+import com.tree.plms.model.entity.Vehicle;
 import com.tree.plms.service.MonthlyCardService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tree.plms.service.VehicleService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,7 +24,8 @@ import java.util.List;
  */
 @Service
 public class MonthlyCardServiceImpl extends ServiceImpl<MonthlyCardMapper, MonthlyCard> implements MonthlyCardService {
-
+    @Resource
+    private VehicleService vehicleService;
     /**
      * 根据月卡ID查询月卡
      * @param cardId 月卡唯一标识（如"c2024001"）
@@ -46,6 +52,53 @@ public class MonthlyCardServiceImpl extends ServiceImpl<MonthlyCardMapper, Month
      */
     @Override
     public boolean addMonthlyCard(MonthlyCard monthlyCard) {
+        // 验证车辆是否存在
+        String vehicleId = monthlyCard.getVehicleId();
+        if (vehicleId == null || vehicleId.isEmpty()) {
+            throw new IllegalArgumentException("车辆ID不能为空");
+        }
+
+        Vehicle vehicle = vehicleService.getVehicleById(vehicleId);
+        if (vehicle == null) {
+            throw new IllegalArgumentException("车辆不存在，请先登记车辆");
+        }
+
+        // 检查是否已存在该车辆的月卡记录
+        QueryWrapper<MonthlyCard> existingCardQuery = new QueryWrapper<>();
+        existingCardQuery.eq("vehicle_id", vehicleId);
+
+        MonthlyCard existingCard = baseMapper.selectOne(existingCardQuery);
+        if (existingCard != null) {
+            // 策略2：抛出异常提示用户
+            throw new BusinessException(ResultCodeEnum.CARD_EXISTS, "该车辆已存在月卡，请先删除或更新现有月卡");
+        }
+
+        // 自动生成月卡ID
+        if (monthlyCard.getCardId() == null) {
+            // 查询当前最大的月卡ID
+            QueryWrapper<MonthlyCard> queryWrapper = new QueryWrapper<>();
+            queryWrapper.orderByDesc("card_id");
+            queryWrapper.last("LIMIT 1");
+            MonthlyCard lastCard = baseMapper.selectOne(queryWrapper);
+
+            String newCardId;
+            if (lastCard != null) {
+                // 提取数字部分并加1
+                String lastId = lastCard.getCardId();
+                int num = Integer.parseInt(lastId.substring(1)) + 1;
+                newCardId = String.format("c%05d", num);
+            } else {
+                // 第一张月卡
+                newCardId = "c00001";
+            }
+            monthlyCard.setCardId(newCardId);
+        }
+
+        // 设置默认状态
+        if (monthlyCard.getStatus() == null) {
+            monthlyCard.setStatus("01"); // 默认启用
+        }
+
         return this.save(monthlyCard);
     }
 

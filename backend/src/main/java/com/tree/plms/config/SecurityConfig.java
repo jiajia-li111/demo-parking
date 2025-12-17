@@ -1,5 +1,6 @@
 package com.tree.plms.config;
 
+import com.tree.plms.config.JwtAuthenticationFilter;  // 添加这行导入
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,7 +48,6 @@ public class SecurityConfig {
     /**
      * 安全过滤器链配置
      */
-    // 在 SecurityConfig.java 的 securityFilterChain 方法中添加
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, 
                                                 JwtAuthenticationFilter jwtFilter) throws Exception {
@@ -59,7 +59,16 @@ public class SecurityConfig {
                 // 允许登录接口公开访问
                 .requestMatchers("/auth/login").permitAll()
                 // 允许Swagger接口文档相关路径公开访问
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
+                .requestMatchers(
+                    "/swagger-ui.html",
+                        // 精确匹配Swagger UI首页
+                        "/v3/api-docs.yaml",
+                    "/swagger-ui/**",         // 匹配Swagger UI的所有资源
+                    "/v3/api-docs/**",        // 匹配API文档JSON
+                    "/swagger-resources/**",  // 匹配Swagger资源
+                    "/api-docs/**",           // 匹配旧版API文档路径
+                    "/webjars/**"             // 匹配Swagger UI使用的WebJars资源
+                ).permitAll()
                 // 其他所有请求需要认证
                 .anyRequest().authenticated()
             )

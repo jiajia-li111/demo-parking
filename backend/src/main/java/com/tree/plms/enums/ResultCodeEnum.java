@@ -23,7 +23,8 @@ public enum ResultCodeEnum {
     GATE_UNAVAILABLE(1004, "通道不可用"),
     PAYMENT_FAILED(1005, "支付失败，请重试"),
     CARD_EXPIRED(1006, "月卡已过期"),
-    CARD_INVALID(1007, "月卡状态无效");
+    CARD_INVALID(1007, "月卡状态无效"),
+    CARD_EXISTS(1008, "该车辆已存在月卡，请先删除或更新现有月卡");
 
     /**
      * 状态码（建议与HTTP状态码对齐，业务码可自定义）
