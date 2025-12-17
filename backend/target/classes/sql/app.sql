@@ -22,10 +22,6 @@ DROP TABLE IF EXISTS `t_gate`;
 DROP TABLE IF EXISTS `t_floor`;
 DROP TABLE IF EXISTS `t_owner`;
 
--- 删除已有视图
-DROP VIEW IF EXISTS `v_parking_space_usage`;
-DROP VIEW IF EXISTS `v_today_parking_stats`;
-DROP VIEW IF EXISTS `v_card_expiry_alert`;
 
 
 -- 1. 楼层表（t_floor）
@@ -34,8 +30,7 @@ CREATE TABLE `t_floor` (
                            `floor_name` VARCHAR(20) NOT NULL COMMENT '楼层名称（如"地下一层"）',
                            `total_spaces` INT NOT NULL COMMENT '总车位数（每层固定200个车位）',
                            PRIMARY KEY (`floor_id`),
-                           UNIQUE KEY `uk_floor_name` (`floor_name`), -- 确保楼层名称唯一
-                           CONSTRAINT `ck_floor_total` CHECK (`total_spaces` = 200) -- 强制每层200个车位
+                           UNIQUE KEY `uk_floor_name` (`floor_name`) -- 确保楼层名称唯一
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='存储停车场楼层信息';
 
 
@@ -155,7 +150,7 @@ CREATE TABLE `t_monthly_card` (
 CREATE TABLE `t_fee_rule` (
                               `rule_id` VARCHAR(6) NOT NULL COMMENT '规则标识（如"r00001"）',
                               `rule_name` VARCHAR(50) NOT NULL COMMENT '规则名称（如"临时车白天费率"）',
-                              `apply_to` VARCHAR(2) NOT NULL COMMENT '适用对象（01=临时车，02=月卡超时）',
+                              `apply_to` VARCHAR(2) NOT NULL COMMENT '适用对象（01=临时车，02=月卡车）',
                               `vehicle_type` VARCHAR(2) NOT NULL COMMENT '适用车型（01=小型车，02=大型车）',
                               `first_hour_fee` DECIMAL(5,2) NOT NULL COMMENT '首小时费用（单位：元）',
                               `next_hour_fee` DECIMAL(5,2) NOT NULL COMMENT '后续小时费用（单位：元）',
@@ -163,11 +158,12 @@ CREATE TABLE `t_fee_rule` (
                               `night_start` VARCHAR(5) NOT NULL COMMENT '夜间时段开始（如"20:00"）',
                               `night_end` VARCHAR(5) NOT NULL COMMENT '夜间时段结束（如"08:00"）',
                               `night_rate` DECIMAL(5,2) NOT NULL COMMENT '夜间费率（单位：元/小时）',
-                              `effective_date` DATE NOT NULL COMMENT '生效日期（如"2024-01-01"）',
+                              `status` VARCHAR(2) NOT NULL DEFAULT '02' COMMENT '规则状态（01=启用，02=禁用）',
                               PRIMARY KEY (`rule_id`),
-                              UNIQUE KEY `uk_rule_apply_vehicle` (`apply_to`, `vehicle_type`), -- 同一对象+车型规则唯一
+                              UNIQUE KEY `uk_rule_apply_vehicle_status` (`apply_to`, `vehicle_type`, `status`) COMMENT '同一对象+车型只能有一个启用规则',
                               CONSTRAINT `ck_rule_apply_to` CHECK (`apply_to` IN ('01', '02')),
                               CONSTRAINT `ck_rule_vehicle_type` CHECK (`vehicle_type` IN ('01', '02')),
+                              CONSTRAINT `ck_rule_status` CHECK (`status` IN ('01', '02')),
     -- 费用需为正数
                               CONSTRAINT `ck_rule_fee_positive` CHECK (
                                   `first_hour_fee` >= 0 AND
@@ -290,10 +286,11 @@ INSERT INTO `t_gate` (`gate_id`, `gate_type`, `entrance_id`, `status`) VALUES
                                                                            ('out2', '02', '02', '01'); -- 2号出口
 
 -- 5. 收费规则表
-INSERT INTO `t_fee_rule` (`rule_id`, `rule_name`, `apply_to`, `vehicle_type`, `first_hour_fee`, `next_hour_fee`, `daily_cap`, `night_start`, `night_end`, `night_rate`, `effective_date`) VALUES
-                                                                                                                                                                                              ('r00001', '临时车小型车费率', '01', '01', 5.00, 3.00, 30.00, '20:00', '08:00', 2.00, '2024-01-01'),
-                                                                                                                                                                                              ('r00002', '临时车大型车费率', '01', '02', 8.00, 5.00, 50.00, '20:00', '08:00', 3.00, '2024-01-01'),
-                                                                                                                                                                                              ('r00003', '月卡超时费率', '02', '01', 2.00, 1.00, 15.00, '20:00', '08:00', 1.00, '2024-01-01');
+INSERT INTO `t_fee_rule` (`rule_id`, `rule_name`, `apply_to`, `vehicle_type`, `first_hour_fee`, `next_hour_fee`, `daily_cap`, `night_start`, `night_end`, `night_rate`, `status`) VALUES
+-- 临时车小型车费率
+('r00001', '临时车小型车费率', '01', '01', 5.00, 3.00, 30.00, '20:00', '08:00', 2.00,  '01'),
+-- 有效月卡小型车优惠费率（03=有效月卡）
+('r00003', '有效月卡小型车优惠费率', '02', '01', 2.00, 1.00, 15.00, '20:00', '08:00', 1.00,  '01');
 
 -- 6. 业主表
 INSERT INTO `t_owner` (`owner_id`, `name`, `room_no`, `phone`) VALUES
@@ -310,8 +307,8 @@ INSERT INTO `t_vehicle` (`vehicle_id`, `license_plate`, `vehicle_type`, `is_owne
 
 -- 8. 月卡表（业主车绑定月卡）
 INSERT INTO `t_monthly_card` (`card_id`, `vehicle_id`, `issuer_id`, `start_date`, `end_date`, `status`) VALUES
-                                                                                                            ('c0000001', 'v0000001', 'u00001', '2024-01-01 00:00:00', '2024-12-31 23:59:59', '01'),
-                                                                                                            ('c0000002', 'v0000002', 'u00001', '2024-01-01 00:00:00', '2024-12-31 23:59:59', '01'),
+                                                                                                            ('c0000001', 'v0000001', 'u00001', '2024-01-01 00:00:00', '2026-12-31 23:59:59', '01'),
+                                                                                                            ('c0000002', 'v0000002', 'u00001', '2024-01-01 00:00:00', '2026-12-31 23:59:59', '01'),
                                                                                                             ('c0000003', 'v0000003', 'u00001', '2024-01-01 00:00:00', '2024-06-30 23:59:59', '03'); -- 已过期
 
 -- 9. 车位表（初始化400个车位，含3个固定车位）

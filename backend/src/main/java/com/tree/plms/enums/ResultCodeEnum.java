@@ -28,7 +28,9 @@ public enum ResultCodeEnum {
     TEMP_VEHICLE_CREATE_FAILED(1009, "创建临时车辆失败，请重试"),
     VEHICLE_ALREADY_PARKING(1010, "该车辆已在停车场内，无法重复入场"),
     VEHICLE_NOT_EXIST(1011, "车辆不存在"),
-    VEHICLE_NOT_PARKING(1012, "车辆未在停车场内" );
+    VEHICLE_NOT_PARKING(1012, "车辆未在停车场内" ),
+     FEE_RULE_NOT_FOUND(1013, "未查询到收费规则"),
+    GATE_NOT_FOUND(1014, "未查询到通道信息");
 
     /**
      * 状态码（建议与HTTP状态码对齐，业务码可自定义）

@@ -9,8 +9,11 @@ import com.tree.plms.model.vo.ExitResultVO;
 import com.tree.plms.service.*;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -45,8 +48,13 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     @Resource
     private FeeRuleService feeRuleService; // 新增：注入FeeRuleService
 
+    @Autowired
+    private GateService gateService;
+
+
 
     @Override
+    @Transactional
     public Result<EntryResultVO> vehicleEntry(String licensePlate, String gateId) {
         LocalDateTime now = LocalDateTime.now();
         String eventId = "e" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -59,12 +67,13 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         accessEvent.setRecognitionResult("01"); // 识别成功
         accessEvent.setEventType("01"); // 进场事件
         accessEvent.setHandleStatus("02"); // 初始状态为拦截
-        
-        Vehicle vehicle;
-        
-        // 2. 检查车牌号是否存在于数据库中
-        vehicle = vehicleService.getVehicleByLicensePlate(licensePlate);
-        
+
+        if(gateService.getGateById(gateId) == null){
+            accessEventService.addAccessEvent(accessEvent);
+            return Result.fail(ResultCodeEnum.GATE_NOT_FOUND);
+        }
+
+        Vehicle vehicle = vehicleService.getVehicleByLicensePlate(licensePlate);
         // 3. 如果车辆不存在（包括车牌号为空或不在数据库中），则创建临时车辆
         if (vehicle == null) {
             // 3.1 创建临时车辆记录
@@ -139,6 +148,7 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     
         // 检查是否有有效的月卡（只有业主车才有月卡）
         if ("01".equals(vehicle.getIsOwnerCar())) {
+            System.out.println("检查是否有有效的月卡");
             List<MonthlyCard> monthlyCards = monthlyCardService.getMonthlyCardsByVehicleId(vehicle.getVehicleId());
             if (!monthlyCards.isEmpty()) {
                 MonthlyCard monthlyCard = monthlyCards.get(0);
@@ -194,21 +204,13 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     }
 
     @Override
-    public Result<ExitResultVO> vehicleExit(String licensePlate, String gateId, String payMethod) {
-        // 直接调用新的两阶段接口实现
-        Result<ExitResultVO> feeResult = calculateFee(licensePlate, gateId);
-        if (!feeResult.isSuccess() || feeResult.getData() == null) {
-            return feeResult;
-        }
-        return processPayment(feeResult.getData().getSessionId(), gateId, payMethod);
-    }
-
-    @Override
     public Result<ExitResultVO> calculateFee(String licensePlate, String gateId) {
-        LocalDateTime now = LocalDateTime.now();
-        String eventId = "e" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        if(gateService.getGateById(gateId) == null){
+            return Result.fail(ResultCodeEnum.GATE_NOT_FOUND);
+        }
 
-        // 2. 查询车辆信息
+        LocalDateTime now = LocalDateTime.now();
+
         Vehicle vehicle = vehicleService.getVehicleByLicensePlate(licensePlate);
         if (vehicle == null) {
             return Result.fail(ResultCodeEnum.VEHICLE_NOT_EXIST);
@@ -216,8 +218,6 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         if(!"01".equals(vehicle.getIsParking())){
             return Result.fail(ResultCodeEnum.VEHICLE_NOT_PARKING);
         }
-
-
 
 
         // 3. 查询未结束的停车会话
@@ -229,7 +229,6 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         if (parkingSession == null) {
             return Result.fail(ResultCodeEnum.SESSION_NOT_FOUND);
         }
-
 
         // 4. 计算停车时长
         long minutes = ChronoUnit.MINUTES.between(parkingSession.getEntryTime(), now);
@@ -247,18 +246,46 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             }
         }
 
-        // 如果月卡无效，计算临时停车费用
-        if (!isMonthlyCardValid) {
+        FeeRule feeRule = null;
+        // 根据月卡状态选择计费方式
+        if (isMonthlyCardValid) {
+            // 有效月卡，使用优惠规则
+            // 查询月卡优惠规则（小型车）
+            QueryWrapper<FeeRule> feeQuery = new QueryWrapper<>();
+            feeQuery.eq("apply_to", "02")  // 使用月卡规则作为优惠规则
+                    .eq("vehicle_type", "01")  // 小型车
+                    .eq("status", "01");// 有效规则
+            
+            feeRule = feeRuleService.getOne(feeQuery);
+
+        } else {
+            // 月卡无效，使用标准计费
             // 简单的费用计算逻辑：首小时5元，后续每小时3元，每日封顶30元
+            QueryWrapper<FeeRule> feeQuery = new QueryWrapper<>();
+            feeQuery.eq("apply_to", "01")  // 使用临时车规则作为优惠规则
+                    .eq("vehicle_type", "01")  // 小型车
+                    .eq("status", "01");// 有效规则
+
+
+
+            feeRule = feeRuleService.getOne(feeQuery);
+        }
+
+        if (feeRule != null) {
+            // 应用优惠规则计算费用
             if (hours <= 1) {
-                payAmount = new BigDecimal("5.00");
+                payAmount = feeRule.getFirstHourFee();
             } else {
-                BigDecimal firstHourFee = new BigDecimal("5.00");
-                BigDecimal nextHourFee = new BigDecimal("3.00");
-                BigDecimal totalFee = firstHourFee.add(nextHourFee.multiply(new BigDecimal(hours - 1)));
-                // 每日封顶30元
-                payAmount = totalFee.compareTo(new BigDecimal("30.00")) > 0 ? new BigDecimal("30.00") : totalFee;
+                BigDecimal firstHourFee = feeRule.getFirstHourFee();
+                BigDecimal nextHourFee = feeRule.getNextHourFee().multiply(new BigDecimal(hours - 1));
+                payAmount = firstHourFee.add(nextHourFee);
             }
+            // 应用每日封顶
+            if (payAmount.compareTo(feeRule.getDailyCap()) > 0) {
+                payAmount = feeRule.getDailyCap();
+            }
+        }else{
+            return Result.fail(ResultCodeEnum.FEE_RULE_NOT_FOUND);
         }
 
 
@@ -321,11 +348,11 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         accessEvent.setHandleStatus("01"); // 放行状态
         accessEventService.addAccessEvent(accessEvent);
 
-        // 7. 计算停车时长
+        // 4. 计算停车时长
         long minutes = ChronoUnit.MINUTES.between(parkingSession.getEntryTime(), now);
         double hours = Math.ceil(minutes / 60.0); // 向上取整到小时
 
-        // 8. 计算费用（再次计算以确保准确性）
+        // 5. 计算费用
         BigDecimal payAmount = BigDecimal.ZERO;
         boolean isMonthlyCardValid = false;
 
@@ -336,19 +363,48 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
                 isMonthlyCardValid = true;
             }
         }
+        FeeRule feeRule = null;
+        // 根据月卡状态选择计费方式
+        if (isMonthlyCardValid) {
+            // 有效月卡，使用优惠规则
+            // 查询月卡优惠规则（小型车）
+            QueryWrapper<FeeRule> feeQuery = new QueryWrapper<>();
+            feeQuery.eq("apply_to", "02")  // 使用月卡规则作为优惠规则
+                    .eq("vehicle_type", "01")  // 小型车
+                    .eq("status", "01");// 有效规则
 
-        // 如果月卡无效，计算临时停车费用
-        if (!isMonthlyCardValid) {
+
+
+            feeRule = feeRuleService.getOne(feeQuery);
+
+        } else {
+            // 月卡无效，使用标准计费
             // 简单的费用计算逻辑：首小时5元，后续每小时3元，每日封顶30元
+            QueryWrapper<FeeRule> feeQuery = new QueryWrapper<>();
+            feeQuery.eq("apply_to", "01")  // 使用临时车规则作为优惠规则
+                    .eq("vehicle_type", "01")  // 小型车
+                    .eq("status", "01");// 有效规则
+
+
+
+            feeRule = feeRuleService.getOne(feeQuery);
+        }
+
+        if (feeRule != null) {
+            // 应用优惠规则计算费用
             if (hours <= 1) {
-                payAmount = new BigDecimal("5.00");
+                payAmount = feeRule.getFirstHourFee();
             } else {
-                BigDecimal firstHourFee = new BigDecimal("5.00");
-                BigDecimal nextHourFee = new BigDecimal("3.00");
-                BigDecimal totalFee = firstHourFee.add(nextHourFee.multiply(new BigDecimal(hours - 1)));
-                // 每日封顶30元
-                payAmount = totalFee.compareTo(new BigDecimal("30.00")) > 0 ? new BigDecimal("30.00") : totalFee;
+                BigDecimal firstHourFee = feeRule.getFirstHourFee();
+                BigDecimal nextHourFee = feeRule.getNextHourFee().multiply(new BigDecimal(hours - 1));
+                payAmount = firstHourFee.add(nextHourFee);
             }
+            // 应用每日封顶
+            if (payAmount.compareTo(feeRule.getDailyCap()) > 0) {
+                payAmount = feeRule.getDailyCap();
+            }
+        }else{
+            return Result.fail(ResultCodeEnum.FEE_RULE_NOT_FOUND);
         }
 
         //返回支付结果前，修改车辆数据为未在停车场内

@@ -6,6 +6,7 @@ import com.tree.plms.mapper.FeeRuleMapper;
 import com.tree.plms.service.FeeRuleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
@@ -45,7 +46,18 @@ public class FeeRuleServiceImpl extends ServiceImpl<FeeRuleMapper, FeeRule> impl
      * @return 是否新增成功
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean addFeeRule(FeeRule feeRule) {
+        // 如果未指定状态，默认设置为禁用
+        if (feeRule.getStatus() == null) {
+            feeRule.setStatus("02");
+        }
+        
+        // 如果要启用新规则，先禁用同类型的其他规则
+        if ("01".equals(feeRule.getStatus())) {
+            disableOtherRules(feeRule.getApplyTo(), feeRule.getVehicleType(), null);
+        }
+        
         return this.save(feeRule);
     }
 
@@ -55,11 +67,16 @@ public class FeeRuleServiceImpl extends ServiceImpl<FeeRuleMapper, FeeRule> impl
      * @return 是否更新成功
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateFeeRule(FeeRule feeRule) {
+        // 检查是否要启用当前规则
+        if ("01".equals(feeRule.getStatus())) {
+            // 禁用同类型的其他规则（排除当前规则）
+            disableOtherRules(feeRule.getApplyTo(), feeRule.getVehicleType(), feeRule.getRuleId());
+        }
+        
         return this.updateById(feeRule);
     }
-
-
 
     /**
      * 删除计费规则
@@ -95,6 +112,29 @@ public class FeeRuleServiceImpl extends ServiceImpl<FeeRuleMapper, FeeRule> impl
         return baseMapper.selectList(queryWrapper);
     }
 
-
-
+    /**
+     * 禁用同类型的其他规则
+     * @param applyTo 适用对象
+     * @param vehicleType 车辆类型
+     * @param excludeRuleId 要排除的规则ID
+     */
+    private void disableOtherRules(String applyTo, String vehicleType, String excludeRuleId) {
+        QueryWrapper<FeeRule> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("apply_to", applyTo)
+                   .eq("vehicle_type", vehicleType)
+                   .eq("status", "01");
+        
+        // 排除当前规则（如果是更新操作）
+        if (excludeRuleId != null) {
+            queryWrapper.ne("rule_id", excludeRuleId);
+        }
+        
+        List<FeeRule> existingRules = baseMapper.selectList(queryWrapper);
+        
+        // 将其他启用的规则禁用
+        for (FeeRule rule : existingRules) {
+            rule.setStatus("02");
+            baseMapper.updateById(rule);
+        }
+    }
 }

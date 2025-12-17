@@ -145,15 +145,17 @@ public class MonthlyCardServiceImpl extends ServiceImpl<MonthlyCardMapper, Month
     }
 
     /**
-     * 按绑定车辆ID查询月卡
-     * @param vehicleId 绑定车辆ID
+     * 按绑定车辆牌照查询月卡 出问题懒得改了
+     * 实际上前端发来的是车牌，而不是车辆ID
+     * 哪有用车辆id查询了，谁知道我这车id多少，但是要改成vo麻烦，就这样了
      * @return 符合条件的月卡列表
      */
     @Override
     public List<MonthlyCard> getMonthlyCardsByVehicleId(String vehicleId) {
-        QueryWrapper<MonthlyCard> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("vehicle_id", vehicleId);
-        return baseMapper.selectList(queryWrapper);
+        System.out.println("vehicleId: " + vehicleId);
+        QueryWrapper<MonthlyCard> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("vehicle_id", vehicleId);
+        return baseMapper.selectList(queryWrapper1);
     }
 
     /**

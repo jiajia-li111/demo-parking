@@ -26,14 +26,6 @@ public interface ParkingSessionService extends IService<ParkingSession> {
      */
     Result<EntryResultVO> vehicleEntry(String licensePlate, String gateId);
 
-    /**
-     * 车辆出场（识别车牌→查询会话→计算费用→生成支付单→更新状态→记录过闸事件）
-     * @param licensePlate 车牌号
-     * @param gateId 出场通道ID（如"out1"）
-     * @param payMethod 支付方式（01=微信，02=支付宝，03=现金）
-     * @return 出场结果（应付金额、支付状态、是否放行）
-     */
-    Result<ExitResultVO> vehicleExit(String licensePlate, String gateId, String payMethod);
 
     /**
      * 计算停车费用（两阶段出场第一阶段）

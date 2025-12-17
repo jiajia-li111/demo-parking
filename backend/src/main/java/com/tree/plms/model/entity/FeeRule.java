@@ -97,10 +97,11 @@ public class FeeRule implements Serializable {
     @Schema(description = "夜间费率")
     private BigDecimal nightRate;
 
+
     /**
-     * 生效日期（如"2024-01-01"）
+     * 状态（01=有效，02=无效）
      */
-    @TableField("effective_date")
-    @Schema(description = "生效日期")
-    private LocalDate effectiveDate;
+    @TableField("status")
+    @Schema(description = "状态")
+    private String status;
 }
