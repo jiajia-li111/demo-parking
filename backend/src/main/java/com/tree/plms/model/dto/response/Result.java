@@ -7,8 +7,7 @@ package com.tree.plms.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tree.plms.enums.ResultCodeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -18,18 +17,18 @@ import java.io.Serializable;
  * @param <T> 响应数据类型
  */
 @Data
-@ApiModel(description = "统一响应结果")
+@Schema(description = "统一响应结果")
 public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "状态码（200=成功，其他=失败）", required = true, example = "200")
+    @Schema(description = "状态码（200=成功，其他=失败）", example = "200")
     private int code;
 
-    @ApiModelProperty(value = "响应消息（成功/失败描述）", required = true, example = "操作成功")
+    @Schema(description = "响应消息（成功/失败描述）", example = "操作成功")
     private String msg;
 
-    @ApiModelProperty(value = "响应数据（成功时返回，失败时为null）")
+    @Schema(description = "响应数据（成功时返回，失败时为null）")
     @JsonInclude(JsonInclude.Include.NON_NULL) // 数据为null时不序列化
     private T data;
 

@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
-            throws ServletException, IOException, IOException {
+            throws ServletException, IOException {  // 移除重复的IOException
 
         // 1. 从请求头获取令牌
         String token = request.getHeader("Authorization");

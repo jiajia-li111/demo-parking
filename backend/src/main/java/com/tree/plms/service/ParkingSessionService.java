@@ -17,8 +17,9 @@ import java.util.List;
  * @since 2025-11-12
  */
 public interface ParkingSessionService extends IService<ParkingSession> {
+
     /**
-     * 车辆进场（识别车牌→验证车辆→分配车位→创建会话→记录过闸事件）
+     * 车辆进场（识别车牌→验证车辆→分配车位→创建会话）
      * @param licensePlate 车牌号
      * @param gateId 进场通道ID（如"in1"）
      * @return 进场结果（会话ID、车位ID、是否放行）
@@ -34,6 +35,22 @@ public interface ParkingSessionService extends IService<ParkingSession> {
      */
     Result<ExitResultVO> vehicleExit(String licensePlate, String gateId, String payMethod);
 
+    /**
+     * 计算停车费用（两阶段出场第一阶段）
+     * @param licensePlate 车牌号
+     * @param gateId 出场通道ID
+     * @return 费用计算结果
+     */
+    Result<ExitResultVO> calculateFee(String licensePlate, String gateId);
+
+    /**
+     * 处理停车支付（两阶段出场第二阶段）
+     * @param sessionId 停车会话ID
+     * @param gateId 出场通道ID
+     * @param payMethod 支付方式
+     * @return 支付结果
+     */
+    Result<ExitResultVO> processPayment(String sessionId, String gateId, String payMethod);
 
     /**
      * 根据会话ID查询停车会话信息

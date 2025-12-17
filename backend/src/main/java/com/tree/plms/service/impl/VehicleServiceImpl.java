@@ -31,6 +31,26 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
 
     @Override
     public boolean addVehicle(Vehicle vehicle) {
+        if (vehicle.getVehicleId() == null) {
+            // 查询当前最大的车辆ID
+            QueryWrapper<Vehicle> queryWrapper = new QueryWrapper<>();
+            queryWrapper.orderByDesc("vehicle_id");
+            queryWrapper.last("LIMIT 1");
+            Vehicle lastVehicle = baseMapper.selectOne(queryWrapper);
+
+            String newVehicleId;
+            if (lastVehicle != null) {
+                // 提取数字部分并加1
+                String lastId = lastVehicle.getVehicleId();
+                int num = Integer.parseInt(lastId.substring(1)) + 1;
+                newVehicleId = String.format("v%05d", num);
+            } else {
+                // 第一辆车
+                newVehicleId = "v00001";
+            }
+            vehicle.setVehicleId(newVehicleId);
+        }
+
         return save(vehicle);
     }
 

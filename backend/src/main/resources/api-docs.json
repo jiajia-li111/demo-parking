@@ -1,0 +1,1423 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PLMS Parking System API",
+    "description": "停车场管理系统API文档",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "认证接口",
+      "description": "处理用户登录、登出等操作"
+    },
+    {
+      "name": "通道管理接口",
+      "description": "处理通道的创建、更新、删除等操作"
+    },
+    {
+      "name": "月卡管理",
+      "description": "提供月卡相关的操作接口"
+    },
+    {
+      "name": "用户管理",
+      "description": "用户管理接口"
+    }
+  ],
+  "paths": {
+    "/users/{userId}": {
+      "put": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "更新用户",
+        "description": "更新一个用户",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SysUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "删除用户",
+        "description": "删除一个用户",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/reset-password": {
+      "put": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "重置密码",
+        "description": "重置用户密码",
+        "operationId": "resetPassword",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "newPassword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/password": {
+      "put": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "修改密码",
+        "description": "修改用户密码",
+        "operationId": "updatePassword",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "oldPassword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "newPassword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/monthly-cards/{cardId}": {
+      "get": {
+        "tags": [
+          "月卡管理"
+        ],
+        "summary": "获取月卡详情",
+        "description": "根据ID获取月卡的详情",
+        "operationId": "getMonthlyCardById",
+        "parameters": [
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMonthlyCard"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "月卡管理"
+        ],
+        "summary": "更新月卡",
+        "description": "根据ID更新月卡的详细信息",
+        "operationId": "updateMonthlyCard",
+        "parameters": [
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonthlyCard"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "月卡管理"
+        ],
+        "summary": "删除月卡",
+        "description": "根据ID删除月卡",
+        "operationId": "deleteMonthlyCard",
+        "parameters": [
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gates/{gateId}": {
+      "put": {
+        "tags": [
+          "通道管理接口"
+        ],
+        "summary": "更新通道",
+        "description": "更新指定通道的详细信息",
+        "operationId": "updateGate",
+        "parameters": [
+          {
+            "name": "gateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Gate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "通道管理接口"
+        ],
+        "summary": "删除通道",
+        "description": "删除一个通道",
+        "operationId": "deleteGate",
+        "parameters": [
+          {
+            "name": "gateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "获取用户列表",
+        "description": "获取所有用户的列表",
+        "operationId": "getUserList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListSysUser"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "创建用户",
+        "description": "创建一个新的用户",
+        "operationId": "createUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SysUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parking-session/process-payment": {
+      "post": {
+        "tags": [
+          "出闸入闸管理"
+        ],
+        "summary": "处理停车支付接口",
+        "description": "处理车辆停车支付，记录过闸事件",
+        "operationId": "processPayment",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gateId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "payMethod",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultExitResultVO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parking-session/entry": {
+      "post": {
+        "tags": [
+          "出闸入闸管理"
+        ],
+        "summary": "车辆进场接口",
+        "description": "手动输入车辆ID，进行车辆进场处理",
+        "operationId": "vehicleEntry",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gateId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultEntryResultVO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parking-session/calculate-fee": {
+      "post": {
+        "tags": [
+          "出闸入闸管理"
+        ],
+        "summary": "计算停车费用接口",
+        "description": "计算车辆停车费用",
+        "operationId": "calculateFee",
+        "parameters": [
+          {
+            "name": "licensePlate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gateId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultExitResultVO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/monthly-cards": {
+      "get": {
+        "tags": [
+          "月卡管理"
+        ],
+        "summary": "获取月卡列表",
+        "description": "返回所有月卡的列表",
+        "operationId": "getMonthlyCardList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListMonthlyCard"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "月卡管理"
+        ],
+        "summary": "创建月卡",
+        "description": "创建一个新的月卡",
+        "operationId": "createMonthlyCard",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonthlyCard"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gates": {
+      "get": {
+        "tags": [
+          "通道管理接口"
+        ],
+        "summary": "获取通道列表",
+        "description": "获取所有通道的列表",
+        "operationId": "getGateList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListGate"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "通道管理接口"
+        ],
+        "summary": "创建通道",
+        "description": "创建一个新的通道",
+        "operationId": "createGate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Gate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "认证接口"
+        ],
+        "summary": "用户登出",
+        "description": "用户登出系统，删除登录凭证",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "认证接口"
+        ],
+        "summary": "用户登录",
+        "description": "用户输入用户名和密码登录系统，返回登录凭证",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultLoginVO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/page": {
+      "get": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "分页查询用户",
+        "description": "分页查询用户列表",
+        "operationId": "getUserPage",
+        "parameters": [
+          {
+            "name": "current",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            }
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roleId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultIPageSysUserVO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/roles": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "获取角色列表",
+        "description": "获取所有角色的列表",
+        "operationId": "getRoleList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListRole"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/users/current": {
+      "get": {
+        "tags": [
+          "认证接口"
+        ],
+        "summary": "获取当前用户信息",
+        "description": "获取当前登录用户的信息",
+        "operationId": "getCurrentUser",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultSysUserVO"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SysUser": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "用户唯一标识"
+          },
+          "username": {
+            "type": "string",
+            "description": "登录用户名"
+          },
+          "password": {
+            "type": "string",
+            "description": "加密密码"
+          },
+          "roleId": {
+            "type": "string",
+            "description": "关联角色ID"
+          },
+          "department": {
+            "type": "string",
+            "description": "所属部门"
+          },
+          "status": {
+            "type": "string",
+            "description": "状态"
+          }
+        },
+        "description": "存储操作人员信息"
+      },
+      "ResultBoolean": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "boolean",
+            "description": "响应数据（成功时返回，失败时为null）"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "MonthlyCard": {
+        "type": "object",
+        "properties": {
+          "cardId": {
+            "type": "string",
+            "description": "月卡唯一标识"
+          },
+          "vehicleId": {
+            "type": "string",
+            "description": "绑定车辆ID"
+          },
+          "issuerId": {
+            "type": "string",
+            "description": "发卡人ID"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "生效时间",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "到期时间",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "description": "状态"
+          }
+        },
+        "description": "月卡"
+      },
+      "Gate": {
+        "type": "object",
+        "properties": {
+          "gateId": {
+            "type": "string",
+            "description": "通道唯一标识"
+          },
+          "gateType": {
+            "type": "string",
+            "description": "通道类型"
+          },
+          "entranceId": {
+            "type": "string",
+            "description": "所属出入口"
+          },
+          "status": {
+            "type": "string",
+            "description": "状态"
+          }
+        },
+        "description": "停车场通道"
+      },
+      "ExitResultVO": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "description": "停车会话ID（关联本次停车记录）",
+            "example": "s20241105001"
+          },
+          "parkingHours": {
+            "type": "number",
+            "description": "停车时长（单位：小时，保留1位小数）",
+            "format": "double",
+            "example": 3.5
+          },
+          "payAmount": {
+            "type": "number",
+            "description": "应付金额（单位：元）",
+            "example": 11.0
+          },
+          "payMethod": {
+            "type": "string",
+            "description": "支付方式（01=微信，02=支付宝，03=现金）",
+            "example": "01"
+          },
+          "payMethodName": {
+            "type": "string",
+            "description": "支付方式名称",
+            "example": "微信支付"
+          },
+          "payStatus": {
+            "type": "string",
+            "description": "支付状态（01=成功，02=失败，03=退款）",
+            "example": "01"
+          },
+          "payStatusDesc": {
+            "type": "string",
+            "description": "支付状态描述",
+            "example": "支付成功"
+          },
+          "payTime": {
+            "type": "string",
+            "description": "支付时间（yyyy-MM-dd HH:mm:ss）",
+            "example": "2024-11-05 12:30:00"
+          },
+          "exitTime": {
+            "type": "string",
+            "description": "出场时间（yyyy-MM-dd HH:mm:ss）",
+            "example": "2024-11-05 12:30:00"
+          },
+          "pass": {
+            "type": "boolean",
+            "description": "是否放行（true=放行，false=拦截）",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "提示信息",
+            "example": "出场成功，感谢使用"
+          }
+        },
+        "description": "车辆出场结果信息"
+      },
+      "ResultExitResultVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ExitResultVO"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "EntryResultVO": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "description": "停车会话ID（唯一标识本次停车）",
+            "example": "s20241105001"
+          },
+          "spaceId": {
+            "type": "string",
+            "description": "分配的车位ID",
+            "example": "b1_001"
+          },
+          "pass": {
+            "type": "boolean",
+            "description": "是否放行（true=放行，false=拦截）",
+            "example": true
+          },
+          "floorName": {
+            "type": "string",
+            "description": "车位所在楼层",
+            "example": "地下一层"
+          },
+          "entryTime": {
+            "type": "string",
+            "description": "进场时间（yyyy-MM-dd HH:mm:ss）",
+            "example": "2024-11-05 08:30:00"
+          },
+          "message": {
+            "type": "string",
+            "description": "提示信息（如无车位时的原因）",
+            "example": "进场成功，已分配车位"
+          }
+        },
+        "description": "车辆进场结果信息"
+      },
+      "ResultEntryResultVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/EntryResultVO"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "ResultString": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "string",
+            "description": "响应数据（成功时返回，失败时为null）"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "LoginReq": {
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "用户ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "角色名称"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "权限列表",
+            "items": {
+              "type": "string",
+              "description": "权限列表"
+            }
+          },
+          "token": {
+            "type": "string",
+            "description": "登录令牌"
+          }
+        },
+        "description": "登录响应VO"
+      },
+      "ResultLoginVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginVO"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "ResultListSysUser": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "array",
+            "description": "响应数据（成功时返回，失败时为null）",
+            "items": {
+              "$ref": "#/components/schemas/SysUser"
+            }
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "IPageSysUserVO": {
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SysUserVO"
+            }
+          },
+          "current": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "description": "响应数据（成功时返回，失败时为null）"
+      },
+      "ResultIPageSysUserVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/IPageSysUserVO"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "SysUserVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "用户ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "roleId": {
+            "type": "string",
+            "description": "角色ID"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "角色名称"
+          },
+          "department": {
+            "type": "string",
+            "description": "部门"
+          },
+          "status": {
+            "type": "string",
+            "description": "状态（01=启用，02=禁用）"
+          },
+          "statusDesc": {
+            "type": "string",
+            "description": "状态描述"
+          }
+        },
+        "description": "用户详情VO"
+      },
+      "ResultListRole": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "array",
+            "description": "响应数据（成功时返回，失败时为null）",
+            "items": {
+              "$ref": "#/components/schemas/Role"
+            }
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "Role": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "description": "角色标识（如\"r001\"）"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "角色名称（如\"超级管理员\"）"
+          },
+          "permissions": {
+            "type": "string",
+            "description": "权限列表（逗号分隔，如\"发卡,计费\"）"
+          }
+        },
+        "description": "存储角色及权限信息"
+      },
+      "ResultListMonthlyCard": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "array",
+            "description": "响应数据（成功时返回，失败时为null）",
+            "items": {
+              "$ref": "#/components/schemas/MonthlyCard"
+            }
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "ResultMonthlyCard": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MonthlyCard"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "ResultListGate": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "array",
+            "description": "响应数据（成功时返回，失败时为null）",
+            "items": {
+              "$ref": "#/components/schemas/Gate"
+            }
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      },
+      "ResultSysUserVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "状态码（200=成功，其他=失败）",
+            "format": "int32",
+            "example": 200
+          },
+          "msg": {
+            "type": "string",
+            "description": "响应消息（成功/失败描述）",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SysUserVO"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "description": "统一响应结果"
+      }
+    }
+  }
+}

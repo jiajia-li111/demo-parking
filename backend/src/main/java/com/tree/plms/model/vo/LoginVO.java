@@ -1,7 +1,6 @@
 package com.tree.plms.model.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -10,16 +9,16 @@ import lombok.Data;
  */
 
 @Data
-@ApiModel("登录响应VO")
+@Schema(description = "登录响应VO")
 public class LoginVO {
-    @ApiModelProperty("用户ID")
+    @Schema(description = "用户ID")
     private String userId;
-    @ApiModelProperty("用户名")
+    @Schema(description = "用户名")
     private String username;
-    @ApiModelProperty("角色名称")
+    @Schema(description = "角色名称")
     private String roleName;
-    @ApiModelProperty("权限列表")
+    @Schema(description = "权限列表")
     private String[] permissions; // 拆分逗号分隔的权限字符串
-    @ApiModelProperty("登录令牌")
+    @Schema(description = "登录令牌")
     private String token;
 }
