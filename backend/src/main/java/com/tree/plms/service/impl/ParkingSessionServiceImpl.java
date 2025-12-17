@@ -1,5 +1,6 @@
 package com.tree.plms.service.impl;
 
+import com.tree.plms.enums.ResultCodeEnum;
 import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.*;
 import com.tree.plms.mapper.ParkingSessionMapper;
@@ -44,8 +45,6 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     @Resource
     private FeeRuleService feeRuleService; // 新增：注入FeeRuleService
 
-    @Resource
-    private ParkingSessionService parkingSessionService;
 
     @Override
     public Result<EntryResultVO> vehicleEntry(String licensePlate, String gateId) {
@@ -80,20 +79,23 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             
             tempVehicle.setVehicleType("01"); // 默认为小型车
             tempVehicle.setIsOwnerCar("02"); // 非业主车
-            tempVehicle.setIsParking("02");
-            
+            tempVehicle.setIsParking("02");// 初始状态为未在停车场内
+
             // 添加临时车辆
             boolean addSuccess = vehicleService.addVehicle(tempVehicle);
+            // 添加临时车辆失败
             if (!addSuccess) {
                 accessEventService.addAccessEvent(accessEvent);
-                EntryResultVO resultVO = new EntryResultVO();
-                resultVO.setPass(false);
-                resultVO.setMessage("创建临时车辆失败，请重试");
-                return Result.success(resultVO);
+                return Result.fail(ResultCodeEnum.TEMP_VEHICLE_CREATE_FAILED);
             }
-            
             // 获取刚添加的临时车辆
             vehicle = tempVehicle;
+
+        }else{
+            if (!vehicle.getIsParking().equals("02")) {
+                accessEventService.addAccessEvent(accessEvent);
+                return Result.fail(ResultCodeEnum.VEHICLE_ALREADY_PARKING);
+            }
         }
         
         // 设置车辆ID到过闸事件
@@ -103,11 +105,13 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         List<ParkingSpace> availableSpaces = parkingSpaceService.getAvailableNonFixedSpaces();
         if (availableSpaces.isEmpty()) {
             accessEventService.addAccessEvent(accessEvent);
-            EntryResultVO resultVO = new EntryResultVO();
-            resultVO.setPass(false);
-            resultVO.setMessage("停车场已满，无法入场");
-            return Result.success(resultVO);
+            return Result.fail(ResultCodeEnum.PARKING_FULL);
         }
+
+        // 5. 更新车辆状态为在停车场内
+        vehicle.setIsParking("01");
+        vehicleService.updateVehicle(vehicle);
+
     
         // 选择第一个空闲车位
         ParkingSpace selectedSpace = availableSpaces.get(0);
@@ -203,26 +207,18 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     public Result<ExitResultVO> calculateFee(String licensePlate, String gateId) {
         LocalDateTime now = LocalDateTime.now();
         String eventId = "e" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        
-        // 1. 记录出场过闸事件（初始状态为拦截）
-        AccessEvent accessEvent = new AccessEvent();
-        accessEvent.setEventId(eventId);
-        accessEvent.setGateId(gateId);
-        accessEvent.setEventTime(now);
-        accessEvent.setEventType("02"); // 出场事件
-        accessEvent.setHandleStatus("02"); // 初始状态为拦截
 
         // 2. 查询车辆信息
         Vehicle vehicle = vehicleService.getVehicleByLicensePlate(licensePlate);
         if (vehicle == null) {
-            accessEventService.addAccessEvent(accessEvent);
-            ExitResultVO resultVO = new ExitResultVO();
-            resultVO.setPass(false);
-            resultVO.setMessage("车辆不存在");
-            return Result.success(resultVO);
+            return Result.fail(ResultCodeEnum.VEHICLE_NOT_EXIST);
         }
-        accessEvent.setVehicleId(vehicle.getVehicleId());
-        accessEvent.setRecognitionResult("01");
+        if(!"01".equals(vehicle.getIsParking())){
+            return Result.fail(ResultCodeEnum.VEHICLE_NOT_PARKING);
+        }
+
+
+
 
         // 3. 查询未结束的停车会话
         QueryWrapper<ParkingSession> queryWrapper = new QueryWrapper<>();
@@ -231,13 +227,9 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         ParkingSession parkingSession = baseMapper.selectOne(queryWrapper);
 
         if (parkingSession == null) {
-            accessEventService.addAccessEvent(accessEvent);
-            ExitResultVO resultVO = new ExitResultVO();
-            resultVO.setPass(false);
-            resultVO.setMessage("未查询到有效的停车会话");
-            return Result.success(resultVO);
+            return Result.fail(ResultCodeEnum.SESSION_NOT_FOUND);
         }
-        accessEvent.setSessionId(parkingSession.getSessionId());
+
 
         // 4. 计算停车时长
         long minutes = ChronoUnit.MINUTES.between(parkingSession.getEntryTime(), now);
@@ -269,8 +261,6 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             }
         }
 
-        // 保存过闸事件，但不更新状态（仅用于记录）
-        accessEventService.addAccessEvent(accessEvent);
 
         // 6. 返回费用计算结果
         ExitResultVO resultVO = new ExitResultVO();
@@ -287,14 +277,12 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     public Result<ExitResultVO> processPayment(String sessionId, String gateId, String payMethod) {
         LocalDateTime now = LocalDateTime.now();
         String eventId = "e" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        
+
         // 1. 查询停车会话
         ParkingSession parkingSession = getParkingSessionById(sessionId);
+        // 未查询到有效的停车会话
         if (parkingSession == null) {
-            ExitResultVO resultVO = new ExitResultVO();
-            resultVO.setPass(false);
-            resultVO.setMessage("未查询到有效的停车会话");
-            return Result.success(resultVO);
+            return Result.fail(ResultCodeEnum.SESSION_NOT_FOUND);
         }
 
         // 2. 记录出场过闸事件
@@ -306,17 +294,15 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         accessEvent.setSessionId(sessionId);
         accessEvent.setEventType("02"); // 出场事件
         accessEvent.setHandleStatus("02"); // 初始状态为拦截
+        accessEvent.setRecognitionResult("01");
 
         // 3. 模拟支付处理
         boolean paymentSuccess = true; // 实际项目中这里应该调用支付接口
 
+        // 支付失败
         if (!paymentSuccess) {
             accessEventService.addAccessEvent(accessEvent);
-            ExitResultVO resultVO = new ExitResultVO();
-            resultVO.setSessionId(sessionId);
-            resultVO.setPass(false);
-            resultVO.setMessage("支付失败，请重新支付");
-            return Result.success(resultVO);
+            return Result.fail(ResultCodeEnum.PAYMENT_FAILED);
         }
 
         // 4. 更新停车会话
@@ -365,11 +351,10 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             }
         }
 
-        //返回支付结果前，删除临时车辆数据（仅非业主车）
+        //返回支付结果前，修改车辆数据为未在停车场内
         Vehicle vehicle = vehicleService.getVehicleById(parkingSession.getVehicleId());
-        if (vehicle != null && "02".equals(vehicle.getIsOwnerCar())) {
-            vehicleService.deleteVehicle(vehicle.getVehicleId());
-        }
+        vehicle.setIsParking("02");
+        vehicleService.updateVehicle(vehicle);
 
         // 9. 返回支付结果
         ExitResultVO resultVO = new ExitResultVO();

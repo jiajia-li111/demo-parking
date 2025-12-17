@@ -89,11 +89,13 @@ CREATE TABLE `t_vehicle` (
                              `vehicle_type` VARCHAR(2) NOT NULL COMMENT '车型（01=小型车，02=大型车）',
                              `is_owner_car` VARCHAR(2) NOT NULL COMMENT '是否业主车（01=是，02=否）',
                              `owner_id` VARCHAR(6) DEFAULT NULL COMMENT '关联业主ID（仅业主车有值）',
+                              `is_parking` VARCHAR(2) NOT NULL COMMENT '车辆是否在停车场内（01=是，02=否）',
                              PRIMARY KEY (`vehicle_id`),
                              UNIQUE KEY `uk_vehicle_license` (`license_plate`),
                              KEY `idx_vehicle_owner` (`owner_id`),
                              CONSTRAINT `ck_vehicle_type` CHECK (`vehicle_type` IN ('01', '02')),
                              CONSTRAINT `ck_vehicle_is_owner` CHECK (`is_owner_car` IN ('01', '02')),
+                             CONSTRAINT `ck_vehicle_is_parking` CHECK (`is_parking` IN ('01', '02')),
     -- 非业主车不允许关联业主ID
                              CONSTRAINT `ck_owner_car_relation` CHECK (
                                  (`is_owner_car` = '01' AND `owner_id` IS NOT NULL) OR
@@ -300,11 +302,11 @@ INSERT INTO `t_owner` (`owner_id`, `name`, `room_no`, `phone`) VALUES
                                                                    ('o00003', '王五', '3栋2单元301', '13800138003');
 
 -- 7. 车辆表（业主车+临时车）
-INSERT INTO `t_vehicle` (`vehicle_id`, `license_plate`, `vehicle_type`, `is_owner_car`, `owner_id`) VALUES
-                                                                                                        ('v0000001', '粤A12345', '01', '01', 'o00001'), -- 业主车
-                                                                                                        ('v0000002', '粤B67890', '01', '01', 'o00002'), -- 业主车
-                                                                                                        ('v0000003', '粤C13579', '02', '01', 'o00003'), -- 业主车
-                                                                                                        ('v0000004', '粤D24680', '01', '02', NULL);     -- 临时车
+INSERT INTO `t_vehicle` (`vehicle_id`, `license_plate`, `vehicle_type`, `is_owner_car`, `owner_id`, `is_parking`) VALUES
+                                                                                                        ('v0000001', '粤A12345', '01', '01', 'o00001','02'), -- 业主车
+                                                                                                        ('v0000002', '粤B67890', '01', '01', 'o00002','02'), -- 业主车
+                                                                                                        ('v0000003', '粤C13579', '02', '01', 'o00003','02'), -- 业主车
+                                                                                                        ('v0000004', '粤D24680', '01', '02', NULL,'02');     -- 临时车
 
 -- 8. 月卡表（业主车绑定月卡）
 INSERT INTO `t_monthly_card` (`card_id`, `vehicle_id`, `issuer_id`, `start_date`, `end_date`, `status`) VALUES

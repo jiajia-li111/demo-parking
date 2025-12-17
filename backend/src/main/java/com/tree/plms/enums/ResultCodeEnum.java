@@ -24,7 +24,11 @@ public enum ResultCodeEnum {
     PAYMENT_FAILED(1005, "支付失败，请重试"),
     CARD_EXPIRED(1006, "月卡已过期"),
     CARD_INVALID(1007, "月卡状态无效"),
-    CARD_EXISTS(1008, "该车辆已存在月卡，请先删除或更新现有月卡");
+    CARD_EXISTS(1008, "该车辆已存在月卡，请先删除或更新现有月卡"),
+    TEMP_VEHICLE_CREATE_FAILED(1009, "创建临时车辆失败，请重试"),
+    VEHICLE_ALREADY_PARKING(1010, "该车辆已在停车场内，无法重复入场"),
+    VEHICLE_NOT_EXIST(1011, "车辆不存在"),
+    VEHICLE_NOT_PARKING(1012, "车辆未在停车场内" );
 
     /**
      * 状态码（建议与HTTP状态码对齐，业务码可自定义）
