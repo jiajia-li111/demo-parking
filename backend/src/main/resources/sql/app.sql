@@ -232,7 +232,7 @@ CREATE TABLE `t_access_event` (
     -- 出场事件必须关联会话ID
                                   CONSTRAINT `ck_event_session` CHECK (
                                       (`event_type` = '02' AND `session_id` IS NOT NULL) OR
-                                      (`event_type` = '01' AND `session_id` IS NULL)
+                                      (`event_type` = '01')
                                       ),
                                   CONSTRAINT `ck_event_recognition` CHECK (`recognition_result` IN ('01', '02', '03')),
                                   CONSTRAINT `ck_event_type` CHECK (`event_type` IN ('01', '02')),
@@ -331,11 +331,6 @@ BEGIN
             VALUES (CONCAT('b2_', LPAD(i, 3, '0')), 'b2', LPAD(i, 3, '0'), '01', '02', NULL);
             SET i = i + 1;
         END WHILE;
-
-    -- 设置3个固定车位（关联业主）
-    UPDATE `t_parking_space` SET `is_fixed` = '01', `owner_id` = 'o00001' WHERE `space_id` = 'b1_001';
-    UPDATE `t_parking_space` SET `is_fixed` = '01', `owner_id` = 'o00002' WHERE `space_id` = 'b1_002';
-    UPDATE `t_parking_space` SET `is_fixed` = '01', `owner_id` = 'o00003' WHERE `space_id` = 'b1_003';
 END //
 DELIMITER ;
 CALL init_parking_spaces();
@@ -359,45 +354,3 @@ INSERT INTO `t_access_event` (`event_id`, `gate_id`, `event_time`, `vehicle_id`,
 INSERT INTO `t_payment` (`payment_id`, `session_id`, `amount`, `pay_method`, `pay_time`, `status`, `transaction_id`) VALUES
                                                                                                                          ('p20241105001', 's20241105001', 12.00, '01', '2024-11-05 18:45:00', '01', 'wx202411051845000001'),
                                                                                                                          ('p20241105002', 's20241105002', 11.00, '02', '2024-11-05 12:30:00', '01', 'alipay202411051230000001');
-
-
--- 视图（优化查询逻辑）
--- 1. 车位使用情况视图
-CREATE OR REPLACE VIEW v_parking_space_usage AS
-SELECT
-    f.floor_id,
-    f.floor_name,
-    f.total_spaces,
-    SUM(CASE WHEN s.status = '01' THEN 1 ELSE 0 END) AS free_spaces,
-    SUM(CASE WHEN s.status = '02' THEN 1 ELSE 0 END) AS occupied_spaces,
-    SUM(CASE WHEN s.status = '03' THEN 1 ELSE 0 END) AS fault_spaces,
-    CONCAT(ROUND(SUM(CASE WHEN s.status = '02' THEN 1 ELSE 0 END) / f.total_spaces * 100, 1), '%') AS usage_rate
-FROM t_floor f
-         LEFT JOIN t_parking_space s ON f.floor_id = s.floor_id
-GROUP BY f.floor_id, f.floor_name, f.total_spaces;
-
--- 2. 今日停车统计视图
-CREATE OR REPLACE VIEW v_today_parking_stats AS
-SELECT
-    COUNT(DISTINCT session_id) AS total_sessions,
-    COUNT(DISTINCT CASE WHEN exit_time IS NOT NULL THEN session_id END) AS completed_sessions,
-    COUNT(DISTINCT CASE WHEN exit_time IS NULL THEN session_id END) AS ongoing_sessions,
-    SUM(CASE WHEN exit_time IS NOT NULL THEN TIMESTAMPDIFF(HOUR, entry_time, exit_time) END) AS total_hours,
-    SUM(CASE WHEN exit_time IS NOT NULL THEN (SELECT amount FROM t_payment p WHERE p.session_id = ps.session_id) END) AS total_revenue
-FROM t_parking_session ps
-WHERE DATE(entry_time) = CURDATE();
-
--- 3. 月卡到期提醒视图
-CREATE OR REPLACE VIEW v_card_expiry_alert AS
-SELECT
-    c.card_id,
-    v.license_plate,
-    o.name AS owner_name,
-    o.phone,
-    c.end_date,
-    DATEDIFF(c.end_date, CURDATE()) AS days_remaining
-FROM t_monthly_card c
-         JOIN t_vehicle v ON c.vehicle_id = v.vehicle_id
-         JOIN t_owner o ON v.owner_id = o.owner_id
-WHERE c.status = '01' AND DATEDIFF(c.end_date, CURDATE()) BETWEEN 0 AND 30 -- 仅提醒0-30天内到期
-ORDER BY days_remaining ASC;

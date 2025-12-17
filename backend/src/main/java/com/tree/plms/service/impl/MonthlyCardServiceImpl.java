@@ -63,6 +63,10 @@ public class MonthlyCardServiceImpl extends ServiceImpl<MonthlyCardMapper, Month
             throw new IllegalArgumentException("车辆不存在，请先登记车辆");
         }
 
+        if (!vehicle.getIsOwnerCar().equals("01")) {
+            throw new IllegalArgumentException("车辆非业主车辆，请先登记业主车辆");
+        }
+
         // 检查是否已存在该车辆的月卡记录
         QueryWrapper<MonthlyCard> existingCardQuery = new QueryWrapper<>();
         existingCardQuery.eq("vehicle_id", vehicleId);
