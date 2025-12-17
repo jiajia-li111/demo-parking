@@ -1,17 +1,22 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
-plugins: [react()],
-server: {
-port: 5173,
-proxy: {
-// 当 VITE_USE_MOCK=false 且本地后端在 5000 端口时，代理 /api
-'/api': {
-target: process.env.VITE_API_BASE || 'http://127.0.0.1:5000',
-changeOrigin: true,
-},
-},
-},
-})
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"), // 可选：支持 @/xxx
+    },
+  },
+  server: {
+    port: 5173,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080", // 后端地址
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
+});
