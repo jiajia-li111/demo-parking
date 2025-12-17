@@ -123,7 +123,13 @@ public class MonthlyCardServiceImpl extends ServiceImpl<MonthlyCardMapper, Month
      */
     @Override
     public boolean deleteMonthlyCard(String cardId) {
-        return this.removeById(cardId);
+        MonthlyCard monthlyCard = this.getById(cardId);
+        if (monthlyCard != null) {
+            // 设置状态为已删除而不是真正删除
+            monthlyCard.setStatus("03"); // 假设"03"表示过期状态
+            return this.updateById(monthlyCard);
+        }
+        return false;
     }
 
     /**
