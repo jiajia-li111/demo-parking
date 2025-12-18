@@ -101,13 +101,8 @@ public class FeeRule implements Serializable {
     /**
      * 状态（01=有效，02=无效）
      */
-<<<<<<< HEAD
     @TableField("status")
     @Schema(description = "状态")
     private String status;
-=======
-    @TableField("effective_date")
-    @Schema(description = "生效日期")
-    private LocalDate effectiveDate;
->>>>>>> origin/main
+
 }
