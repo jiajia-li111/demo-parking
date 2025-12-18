@@ -1,27 +1,35 @@
-import axios from 'axios'
-import { setupMockIfNeeded } from './mock'
+import axios from "axios";
+import { message } from "antd";
+import { getToken, clearToken } from "../utils/auth";
 
-
-const useMock = import.meta.env.VITE_USE_MOCK === 'true'
-const baseURL = import.meta.env.VITE_API_BASE || '/api'
-
-
-if (useMock) setupMockIfNeeded()
-
-
-export const http = axios.create({ baseURL })
-
+const http = axios.create({
+  baseURL: "/api", // ⭐ 用 Vite proxy
+  timeout: 10000,
+});
 
 http.interceptors.request.use((config) => {
-// 可在此注入 token
-return config
-})
-
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 http.interceptors.response.use(
-(res) => res,
-(err) => {
-console.error('API Error:', err?.response || err)
-return Promise.reject(err)
-}
-)
+  (res) => {
+    const result = res.data;
+    if (result.success) return result.data;
+    message.error(result.msg || "请求失败");
+    return Promise.reject(result);
+  },
+  (err) => {
+    if (err.response?.status === 401) {
+      message.error("登录失效，请重新登录");
+      clearToken();
+      window.location.href = "/login";
+    }
+    return Promise.reject(err);
+  }
+);
+
+export default http;

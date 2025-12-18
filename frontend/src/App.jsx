@@ -1,15 +1,24 @@
-import { ConfigProvider } from 'antd'
-import zhCN from 'antd/locale/zh_CN'
-import AppLayout from './components/Layout/AppLayout'
-import AppRouter from './router'
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import MainLayout from "./layouts/MainLayout";
+import LoginPage from "./pages/login";
+import ProfilePage from "./pages/profile";
+import MonthlyCardsPage from "./pages/monthly-cards";
+import UsersPage from "./pages/users";
 
+const router = createBrowserRouter([
+  { path: "/login", element: <LoginPage /> },
+  {
+    path: "/",
+    element: <MainLayout />,
+    children: [
+      { index: true, element: <ProfilePage /> },
+      { path: "monthly-cards", element: <MonthlyCardsPage /> },
+      { path: "users", element: <UsersPage /> }, // ✅ 关键在这
+    ],
+  },
+  { path: "*", element: <Navigate to="/" /> },
+]);
 
 export default function App() {
-return (
-<ConfigProvider locale={zhCN}>
-<AppLayout>
-<AppRouter />
-</AppLayout>
-</ConfigProvider>
-)
+  return <RouterProvider router={router} />;
 }

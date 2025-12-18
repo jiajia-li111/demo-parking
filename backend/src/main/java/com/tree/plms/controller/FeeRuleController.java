@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tree.plms.enums.ResultCodeEnum;
 import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.FeeRule;
-import com.tree.plms.model.entity.MonthlyCard;
 import com.tree.plms.service.FeeRuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
