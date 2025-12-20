@@ -1,10 +1,12 @@
-import { Table, Button, Popconfirm, message } from "antd";
+import { Table, Button, Popconfirm, message, Space } from "antd";
 import { useEffect, useState } from "react";
 import { getUsersPage, deleteUser } from "../../api/users";
+import CreateUserModal from "./CreateUserModal";
 
 export default function UsersPage() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false); // ⭐ 新增
 
   // 拉用户数据
   const fetchUsers = async () => {
@@ -26,7 +28,7 @@ export default function UsersPage() {
     try {
       await deleteUser(userId);
       message.success("删除成功");
-      fetchUsers(); // 刷新列表
+      fetchUsers();
     } catch {
       message.error("删除失败");
     }
@@ -54,12 +56,29 @@ export default function UsersPage() {
 
   return (
     <div style={{ padding: 24, background: "#fff" }}>
+      {/* ⭐ 新增用户按钮 */}
+      <Space style={{ marginBottom: 16 }}>
+        <Button type="primary" onClick={() => setCreateOpen(true)}>
+          新增用户
+        </Button>
+      </Space>
+
       <Table
         rowKey="userId"
         columns={columns}
         dataSource={list}
         loading={loading}
         pagination={false}
+      />
+
+      {/* ⭐ 新增用户弹窗 */}
+      <CreateUserModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={() => {
+          setCreateOpen(false);
+          fetchUsers();
+        }}
       />
     </div>
   );

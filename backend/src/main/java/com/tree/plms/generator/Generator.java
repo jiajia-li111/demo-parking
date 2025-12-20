@@ -17,7 +17,7 @@ public class Generator {
         // 1. 数据库配置（修改为你的本地MySQL信息）
         String url = "jdbc:mysql://localhost:3306/PLMS?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true";
         String username = "root"; // 你的MySQL用户名
-        String password = "123456"; // 你的MySQL密码
+        String password = "ljj21041102"; // 你的MySQL密码
 
         // 2. 代码生成配置
         FastAutoGenerator.create(url, username, password)

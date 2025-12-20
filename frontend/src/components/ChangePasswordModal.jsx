@@ -5,19 +5,25 @@ export default function ChangePasswordModal({ open, onClose }) {
   const [form] = Form.useForm();
 
   const handleOk = async () => {
-    const { oldPassword, newPassword } = await form.validateFields();
+    try {
+      const { oldPassword, newPassword } = await form.validateFields();
 
-    const userId = localStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        message.error("用户信息缺失，请重新登录");
+        return;
+      }
 
-    await updatePassword({
-      userId,
-      oldPassword,
-      newPassword,
-    });
+      await updatePassword({
+        userId,
+        oldPassword,
+        newPassword,
+      });
 
-    message.success("密码修改成功，请重新登录");
-    localStorage.clear();
-    window.location.href = "/login";
+      message.success("密码修改成功，请重新登录");
+      localStorage.clear();
+      window.location.href = "/login";
+    } catch (e) {}
   };
 
   return (
@@ -28,12 +34,13 @@ export default function ChangePasswordModal({ open, onClose }) {
       onCancel={onClose}
       okText="确认"
       cancelText="取消"
+      destroyOnClose
     >
       <Form form={form} layout="vertical">
         <Form.Item
           name="oldPassword"
           label="原密码"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "请输入原密码" }]}
         >
           <Input.Password />
         </Form.Item>
@@ -41,7 +48,10 @@ export default function ChangePasswordModal({ open, onClose }) {
         <Form.Item
           name="newPassword"
           label="新密码"
-          rules={[{ required: true, min: 6 }]}
+          rules={[
+            { required: true, message: "请输入新密码" },
+            { min: 6, message: "新密码至少 6 位" },
+          ]}
         >
           <Input.Password />
         </Form.Item>

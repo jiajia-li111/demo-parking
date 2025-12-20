@@ -1,15 +1,18 @@
 import http from "./http";
 
-/**
- * 修改密码
- * PUT /users/password
- * 参数走 query
- */
-export function updatePassword(params) {
+// 修改密码（配合后端 @RequestParam）
+export function updatePassword({ userId, oldPassword, newPassword }) {
   return http.put("/users/password", null, {
-    params,
+    params: {
+      userId,
+      oldPassword,
+      newPassword,
+    },
   });
 }
+
+
+
 
 export function getUsersPage(params) {
   return http.get("/users/page", { params });
