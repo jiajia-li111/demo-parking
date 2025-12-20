@@ -12,11 +12,33 @@ export default function MainLayout() {
   const [pwdOpen, setPwdOpen] = useState(false);
 
   const menuItems = [
-  { key: "/", label: "个人信息" },
-  { key: "/monthly-cards", label: "月卡管理" },
-  { key: "/users", label: "用户管理" },
-];
-
+    {
+      key: "/",
+      label: "个人信息",
+    },
+    {
+      key: "/monthly-cards",
+      label: "月卡管理",
+    },
+    {
+      key: "/users",
+      label: "用户管理",
+    },
+    {
+      key: "parking",
+      label: "出闸入闸管理",
+      children: [
+        {
+          key: "/parking/entry",
+          label: "车辆进场",
+        },
+        {
+          key: "/parking/exit",
+          label: "车辆出场",
+        },
+      ],
+    },
+  ];
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -29,9 +51,7 @@ export default function MainLayout() {
         }}
       >
         <Space>
-          <Button onClick={() => setPwdOpen(true)}>
-            修改密码
-          </Button>
+          <Button onClick={() => setPwdOpen(true)}>修改密码</Button>
           <LogoutButton />
         </Space>
       </Header>
@@ -42,7 +62,12 @@ export default function MainLayout() {
             mode="inline"
             selectedKeys={[location.pathname]}
             items={menuItems}
-            onClick={({ key }) => navigate(key)}
+            onClick={({ key }) => {
+              // ⚠️ 只有真正的路由 key 才跳转
+              if (key.startsWith("/")) {
+                navigate(key);
+              }
+            }}
           />
         </Sider>
 
@@ -58,3 +83,4 @@ export default function MainLayout() {
     </Layout>
   );
 }
+
