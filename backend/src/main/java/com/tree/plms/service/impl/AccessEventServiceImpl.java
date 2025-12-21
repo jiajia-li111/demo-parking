@@ -4,10 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tree.plms.mapper.AccessEventMapper;
 import com.tree.plms.model.entity.AccessEvent;
+import com.tree.plms.model.entity.Vehicle;
+import com.tree.plms.model.vo.AccessEventVO;
 import com.tree.plms.service.AccessEventService;
+import com.tree.plms.service.VehicleService;
+import jakarta.annotation.Resource;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -20,23 +26,56 @@ import java.util.List;
 @Service
 public class AccessEventServiceImpl extends ServiceImpl<AccessEventMapper, AccessEvent> implements AccessEventService {
 
+    @Resource
+    private VehicleService vehicleService;
     /**
      * 根据ID获取过闸事件信息
      * @param eventId 事件ID
      * @return 过闸事件信息
      */
     @Override
-    public AccessEvent getAccessEventById(String eventId) {
-        return baseMapper.selectById(eventId);
+    public AccessEventVO getAccessEventWithLicensePlateById(String eventId) {
+        AccessEvent event = baseMapper.selectById(eventId);
+        if (event == null) {
+            return null;
+        }
+        return convertToVO(event);
     }
-
     /**
      * 获取所有过闸事件列表
      * @return 过闸事件列表
      */
     @Override
-    public List<AccessEvent> getAllAccessEvents() {
-        return baseMapper.selectList(null);
+    public List<AccessEventVO> getAllAccessEventsWithLicensePlate() {
+        List<AccessEvent> events = baseMapper.selectList(null);
+        return convertToVOList(events);
+    }
+
+    /**
+     * 将AccessEvent转换为AccessEventVO
+     */
+    private AccessEventVO convertToVO(AccessEvent event) {
+        AccessEventVO vo = new AccessEventVO();
+        BeanUtils.copyProperties(event, vo);
+
+        // 如果有关联车辆，获取车牌号
+        if (event.getVehicleId() != null) {
+            Vehicle vehicle = vehicleService.getVehicleById(event.getVehicleId());
+            if (vehicle != null) {
+                vo.setLicensePlate(vehicle.getLicensePlate());
+            }
+        }
+
+        return vo;
+    }
+
+    /**
+     * 将AccessEvent列表转换为AccessEventVO列表
+     */
+    private List<AccessEventVO> convertToVOList(List<AccessEvent> events) {
+        return events.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
     }
 
     /**

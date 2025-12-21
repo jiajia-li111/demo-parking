@@ -82,7 +82,7 @@ export default function AccessEventsPage() {
     { title: "事件ID", dataIndex: "eventId" },
     { title: "通道ID", dataIndex: "gateId" },
     { title: "时间", dataIndex: "eventTime" },
-    { title: "车辆ID", dataIndex: "vehicleId" },
+    { title: "车牌号", dataIndex: "licensePlate" },
     {
       title: "识别结果",
       dataIndex: "recognitionResult",

@@ -1,5 +1,7 @@
 package com.tree.plms.service;
 
+import com.tree.plms.model.dto.response.DailyStatsDTO;
+import com.tree.plms.model.dto.response.MonthlyStatsDTO;
 import com.tree.plms.model.entity.ParkingSession;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tree.plms.model.dto.response.Result;
@@ -112,4 +114,20 @@ public interface ParkingSessionService extends IService<ParkingSession> {
      * @return 停车会话列表
      */
     List<ParkingSession> getParkingSessionsByCardId(String cardId);
+
+    /**
+     * 获取指定日期的统计数据
+     * @param date 统计日期（格式：YYYY-MM-DD）
+     * @return 日统计数据
+     */
+    Result<DailyStatsDTO> getDailyStats(String date);
+
+    /**
+     * 获取指定月份的统计数据
+     * @param year 年份
+     * @param month 月份（1-12）
+     * @return 月统计数据
+     */
+    Result<MonthlyStatsDTO> getMonthlyStats(Integer year, Integer month);
 }
+

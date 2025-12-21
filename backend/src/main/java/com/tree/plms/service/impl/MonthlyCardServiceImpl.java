@@ -3,6 +3,8 @@ package com.tree.plms.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tree.plms.enums.ResultCodeEnum;
 import com.tree.plms.exception.BusinessException;
+import com.tree.plms.model.dto.response.CardExpiryAlertDTO;
+import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.MonthlyCard;
 import com.tree.plms.mapper.MonthlyCardMapper;
 import com.tree.plms.model.entity.Vehicle;
@@ -12,6 +14,8 @@ import com.tree.plms.service.VehicleService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -174,5 +178,44 @@ public class MonthlyCardServiceImpl extends ServiceImpl<MonthlyCardMapper, Month
             queryWrapper.le("end_date", endDate);
         }
         return baseMapper.selectList(queryWrapper);
+    }
+
+    // 在类末尾添加以下方法
+
+    @Override
+    public Result<List<CardExpiryAlertDTO>> getExpiringCards(Integer days) {
+        // 计算截止日期
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expireDate = now.plusDays(days);
+
+        // 查询即将到期的月卡
+        QueryWrapper<MonthlyCard> query = new QueryWrapper<>();
+        query.between("end_date", now, expireDate)
+                .eq("status", "01"); // 只查询启用状态的月卡
+
+        List<MonthlyCard> cards = baseMapper.selectList(query);
+
+        // 转换为DTO
+        List<CardExpiryAlertDTO> alerts = new ArrayList<>();
+        for (MonthlyCard card : cards) {
+            CardExpiryAlertDTO alert = new CardExpiryAlertDTO();
+            alert.setCardId(card.getCardId());
+            alert.setVehicleId(card.getVehicleId());
+            alert.setEndDate(card.getEndDate());
+
+            // 查询车牌号
+            Vehicle vehicle = vehicleService.getVehicleById(card.getVehicleId());
+            if (vehicle != null) {
+                alert.setLicensePlate(vehicle.getLicensePlate());
+            }
+
+            // 计算剩余天数
+            int remainingDays = (int) ChronoUnit.DAYS.between(now, card.getEndDate());
+            alert.setRemainingDays(remainingDays);
+
+            alerts.add(alert);
+        }
+
+        return Result.success(alerts);
     }
 }

@@ -9,15 +9,7 @@ import GatesPage from "./pages/gates";
 import AccessEventsPage from "./pages/access-events";
 import ReportsPage from "./pages/reports";
 
-// ✅ 注意：这里是 access，不是 parking
-import EntryPage from "./pages/access/EntryPage";
-import ExitPage from "./pages/access/ExitPage";
-
-function AuthGuard({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" replace />;
-}
-
+// 使用 parking 相关页面（推荐，因为注释中标记为真实路径）
 import EntryPage from "./pages/parking/entry";
 import ExitPage from "./pages/parking/exit";
 
@@ -57,4 +49,3 @@ const router = createBrowserRouter([
 export default function App() {
   return <RouterProvider router={router} />;
 }
-

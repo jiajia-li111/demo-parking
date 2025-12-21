@@ -1,5 +1,7 @@
 package com.tree.plms.service;
 
+import com.tree.plms.model.dto.response.CardExpiryAlertDTO;
+import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.MonthlyCard;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.time.LocalDateTime;
@@ -70,4 +72,13 @@ public interface MonthlyCardService extends IService<MonthlyCard> {
      * @return 符合条件的月卡列表
      */
     List<MonthlyCard> getMonthlyCardsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+
+    // 在接口末尾添加以下方法
+
+    /**
+     * 获取即将到期的月卡列表
+     * @param days 提前天数（如7表示获取7天内到期的月卡）
+     * @return 到期提醒列表
+     */
+    Result<List<CardExpiryAlertDTO>> getExpiringCards(Integer days);
 }

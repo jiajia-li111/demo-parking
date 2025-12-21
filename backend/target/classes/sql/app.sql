@@ -160,7 +160,6 @@ CREATE TABLE `t_fee_rule` (
                               `night_rate` DECIMAL(5,2) NOT NULL COMMENT '夜间费率（单位：元/小时）',
                               `status` VARCHAR(2) NOT NULL DEFAULT '02' COMMENT '规则状态（01=启用，02=禁用）',
                               PRIMARY KEY (`rule_id`),
-                              UNIQUE KEY `uk_rule_apply_vehicle_status` (`apply_to`, `vehicle_type`, `status`) COMMENT '同一对象+车型只能有一个启用规则',
                               CONSTRAINT `ck_rule_apply_to` CHECK (`apply_to` IN ('01', '02')),
                               CONSTRAINT `ck_rule_vehicle_type` CHECK (`vehicle_type` IN ('01', '02')),
                               CONSTRAINT `ck_rule_status` CHECK (`status` IN ('01', '02')),

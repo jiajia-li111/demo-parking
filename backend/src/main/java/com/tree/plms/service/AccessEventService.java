@@ -2,6 +2,8 @@ package com.tree.plms.service;
 
 import com.tree.plms.model.entity.AccessEvent;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tree.plms.model.vo.AccessEventVO;
+
 import java.util.List;
 
 /**
@@ -15,17 +17,17 @@ import java.util.List;
 public interface AccessEventService extends IService<AccessEvent> {
 
     /**
-     * 根据ID获取过闸事件信息
-     * @param eventId 事件ID
-     * @return 过闸事件信息
+     * 获取所有过闸事件列表（包含车牌号）
+     * @return 过闸事件VO列表
      */
-    AccessEvent getAccessEventById(String eventId);
+    List<AccessEventVO> getAllAccessEventsWithLicensePlate();
 
     /**
-     * 获取所有过闸事件列表
-     * @return 过闸事件列表
+     * 根据事件ID获取过闸事件详情（包含车牌号）
+     * @param eventId 事件ID
+     * @return 过闸事件VO
      */
-    List<AccessEvent> getAllAccessEvents();
+    AccessEventVO getAccessEventWithLicensePlateById(String eventId);
 
     /**
      * 新增过闸事件

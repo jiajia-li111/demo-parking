@@ -16,10 +16,10 @@ public class DailyStatsDTO {
     private String date;
     
     @Schema(description = "入场车辆数", example = "100")
-    private Integer entryCount;
-    
+    private Long entryCount;
+
     @Schema(description = "出场车辆数", example = "95")
-    private Integer exitCount;
+    private Long exitCount;
     
     @Schema(description = "当日收入", example = "5000.00")
     private BigDecimal totalRevenue;
