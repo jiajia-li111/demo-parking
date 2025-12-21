@@ -12,32 +12,22 @@ export default function MainLayout() {
   const [pwdOpen, setPwdOpen] = useState(false);
 
   const menuItems = [
+    { key: "/", label: "个人信息" },
+    { key: "/monthly-cards", label: "月卡管理" },
+    { key: "/users", label: "用户管理" },
+    { key: "/gates", label: "通道管理" },
+
     {
-      key: "/",
-      label: "个人信息",
-    },
-    {
-      key: "/monthly-cards",
-      label: "月卡管理",
-    },
-    {
-      key: "/users",
-      label: "用户管理",
-    },
-    {
-      key: "parking",
-      label: "出闸入闸管理",
+      key: "access-group", // ⚠️ 注意：不是路由
+      label: "出入场管理",
       children: [
-        {
-          key: "/parking/entry",
-          label: "车辆进场",
-        },
-        {
-          key: "/parking/exit",
-          label: "车辆出场",
-        },
+        { key: "/access/entry", label: "车辆进场" },
+        { key: "/access/exit", label: "车辆出场" },
       ],
     },
+
+    { key: "/access-events", label: "过闸事件" },
+    { key: "/reports", label: "报表统计" },
   ];
 
   return (
@@ -63,7 +53,7 @@ export default function MainLayout() {
             selectedKeys={[location.pathname]}
             items={menuItems}
             onClick={({ key }) => {
-              // ⚠️ 只有真正的路由 key 才跳转
+              // 只有真正的路由才跳转
               if (key.startsWith("/")) {
                 navigate(key);
               }

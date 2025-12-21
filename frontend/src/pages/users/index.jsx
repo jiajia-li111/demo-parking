@@ -6,7 +6,7 @@ import CreateUserModal from "./CreateUserModal";
 export default function UsersPage() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false); // ⭐ 新增
+  const [createOpen, setCreateOpen] = useState(false);
 
   // 拉用户数据
   const fetchUsers = async () => {
@@ -56,7 +56,6 @@ export default function UsersPage() {
 
   return (
     <div style={{ padding: 24, background: "#fff" }}>
-      {/* ⭐ 新增用户按钮 */}
       <Space style={{ marginBottom: 16 }}>
         <Button type="primary" onClick={() => setCreateOpen(true)}>
           新增用户
@@ -71,7 +70,6 @@ export default function UsersPage() {
         pagination={false}
       />
 
-      {/* ⭐ 新增用户弹窗 */}
       <CreateUserModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
