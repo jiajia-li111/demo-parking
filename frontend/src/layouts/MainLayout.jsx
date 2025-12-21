@@ -15,6 +15,10 @@ export default function MainLayout() {
   { key: "/", label: "个人信息" },
   { key: "/monthly-cards", label: "月卡管理" },
   { key: "/users", label: "用户管理" },
+  { key: "/gates", label: "通道管理" },
+  { key: "/access", label: "出入场管理" },
+  { key: "/access-events", label: "过闸事件" },
+  { key: "/reports", label: "报表统计" },
 ];
 
 
