@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -85,13 +86,20 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentMapper, Payment> impl
     public BigDecimal calculateTotalAmountByTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
         QueryWrapper<Payment> queryWrapper = new QueryWrapper<>();
         queryWrapper.between("pay_time", startTime, endTime)
-                   .eq("status", "01"); // 仅计算成功的支付
-        // 这里假设PaymentMapper中有calculateTotalAmount方法，如果没有则需要在Mapper接口中添加
-        return baseMapper.selectObjs(queryWrapper).stream()
-                .map(obj -> (BigDecimal) obj)
+                .eq("status", "01"); // 仅计算成功的支付
+
+        List<Payment> list = baseMapper.selectList(queryWrapper);
+        if (list == null || list.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        return list.stream()
+                .map(Payment::getAmount)
+                .filter(Objects::nonNull) // 过滤掉空值
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
+
+
     /**
      * 获取支付方式名称
      * @param payMethod 支付方式代码

@@ -427,7 +427,7 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         payment.setPaymentId(paymentId);
         payment.setSessionId(parkingSession.getSessionId());
         payment.setAmount(payAmount);
-        payment.setPayMethod(payMethod);
+        payment.setPayMethod(getPayMethodID(payMethod));
         payment.setPayTime(now);
         payment.setStatus("01"); // 支付成功
         payment.setTransactionId("txn" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
@@ -461,6 +461,14 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             case "02" -> "支付宝";
             case "03" -> "现金";
             default -> "其他支付方式";
+        };
+    }
+    private String getPayMethodID(String payMethod) {
+        return switch (payMethod) {
+            case "微信支付" -> "01";
+            case "支付宝" -> "02";
+            case "现金" -> "03";
+            default -> "03";
         };
     }
 
@@ -545,12 +553,14 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
                 .between("event_time", startOfDay, endOfDay);
         long exitCount = accessEventService.count(exitQuery);
 
-        // 查询当日收入
+        // 使用 PaymentService 计算当日收入
+        BigDecimal totalRevenue = paymentService.calculateTotalAmountByTimeRange(startOfDay, endOfDay);
+
+        // 查询当日时长
         QueryWrapper<ParkingSession> sessionQuery = new QueryWrapper<>();
         sessionQuery.between("exit_time", startOfDay, endOfDay);
         List<ParkingSession> sessions = baseMapper.selectList(sessionQuery);
 
-        BigDecimal totalRevenue = BigDecimal.ZERO;
         long totalMinutes = 0;
         int completedSessions = 0;
 
@@ -560,10 +570,6 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
                 long minutes = ChronoUnit.MINUTES.between(session.getEntryTime(), session.getExitTime());
                 totalMinutes += minutes;
                 completedSessions++;
-
-                // 计算费用（这里简化处理，实际应该使用feeRuleService）
-                BigDecimal fee = calculateFeeForSession(session);
-                totalRevenue = totalRevenue.add(fee);
             }
         }
 
@@ -591,11 +597,13 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         LocalDateTime startOfMonth = statsDate.atStartOfDay();
         LocalDateTime endOfMonthTime = endOfMonth.plusDays(1).atStartOfDay().minusSeconds(1);
 
+        // 直接使用 PaymentService 计算整个月的收入，而不是逐日累加
+        BigDecimal totalRevenue = paymentService.calculateTotalAmountByTimeRange(startOfMonth, endOfMonthTime);
+
         // 查询当月所有日期的统计数据
         List<DailyStatsDTO> dailyDetails = new ArrayList<>();
         int totalEntry = 0;
         int totalExit = 0;
-        BigDecimal totalRevenue = BigDecimal.ZERO;
 
         LocalDate currentDate = statsDate;
         while (!currentDate.isAfter(endOfMonth)) {
@@ -614,12 +622,14 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
                     .between("event_time", dayStart, dayEnd);
             long exitCount = accessEventService.count(exitQuery);
 
-            // 查询当日收入
+            // 查询当日收入（如果需要每日明细的话）
+            BigDecimal dayRevenue = paymentService.calculateTotalAmountByTimeRange(dayStart, dayEnd);
+
+            // 查询当日时长信息
             QueryWrapper<ParkingSession> sessionQuery = new QueryWrapper<>();
             sessionQuery.between("exit_time", dayStart, dayEnd);
             List<ParkingSession> sessions = baseMapper.selectList(sessionQuery);
 
-            BigDecimal dayRevenue = BigDecimal.ZERO;
             long dayMinutes = 0;
             int completedSessions = 0;
 
@@ -628,9 +638,6 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
                     long minutes = ChronoUnit.MINUTES.between(session.getEntryTime(), session.getExitTime());
                     dayMinutes += minutes;
                     completedSessions++;
-
-                    BigDecimal fee = calculateFeeForSession(session);
-                    dayRevenue = dayRevenue.add(fee);
                 }
             }
 
@@ -646,17 +653,16 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             dailyDetails.add(dailyStats);
 
             // 累加总数
-            totalEntry += entryCount;
-            totalExit += exitCount;
-            totalRevenue = totalRevenue.add(dayRevenue);
+            totalEntry += (int) entryCount;
+            totalExit += (int) exitCount;
 
             currentDate = currentDate.plusDays(1);
         }
 
         // 计算月均数据
         int daysInMonth = yearMonth.lengthOfMonth();
-        int avgDailyEntry = daysInMonth > 0 ? totalEntry / daysInMonth : 0;
-        int avgDailyExit = daysInMonth > 0 ? totalExit / daysInMonth : 0;
+        int avgDailyEntry = daysInMonth > 0 ? (totalExit + daysInMonth - 1) / daysInMonth : 0;
+        int avgDailyExit = daysInMonth > 0 ? (totalExit + daysInMonth - 1) / daysInMonth : 0;
 
         // 构建响应
         MonthlyStatsDTO monthlyStats = new MonthlyStatsDTO();
@@ -667,17 +673,5 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         monthlyStats.setDailyDetails(dailyDetails);
 
         return Result.success(monthlyStats);
-    }
-
-    // 辅助方法：计算单个会话的费用
-    private BigDecimal calculateFeeForSession(ParkingSession session) {
-        // 简化的费用计算逻辑，实际应该使用feeRuleService
-        BigDecimal fee = BigDecimal.ZERO;
-        if (session.getExitTime() != null) {
-            long minutes = ChronoUnit.MINUTES.between(session.getEntryTime(), session.getExitTime());
-            double hours = Math.ceil(minutes / 60.0);
-            fee = new BigDecimal(hours * 5); // 假设每小时5元
-        }
-        return fee;
     }
 }
