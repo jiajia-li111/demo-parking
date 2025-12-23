@@ -15,6 +15,8 @@ export default function MainLayout() {
     { key: "/", label: "个人信息" },
     { key: "/monthly-cards", label: "月卡管理" },
     { key: "/users", label: "用户管理" },
+    { key: "/owners", label: "业主管理" },
+    { key: "/vehicles", label: "车辆管理" },
     { key: "/gates", label: "通道管理" },
 
     {
@@ -73,4 +75,5 @@ export default function MainLayout() {
     </Layout>
   );
 }
+
 

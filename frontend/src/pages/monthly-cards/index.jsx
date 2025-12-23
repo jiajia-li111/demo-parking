@@ -1,4 +1,4 @@
-import { Table, Button, Space, Popconfirm, message, Tag } from "antd";
+import { Table, Button, Space, Popconfirm, message } from "antd";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 
@@ -14,10 +14,10 @@ import MonthlyCardForm from "./MonthlyCardForm";
 export default function MonthlyCardsPage() {
   const [data, setData] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState("create"); // create | edit
+  const [modalMode, setModalMode] = useState("create");
   const [editingRow, setEditingRow] = useState(null);
 
-  /** 加载列表 */
+  /** 加载数据 */
   const loadData = async () => {
     const list = await getMonthlyCards();
     setData(list);
@@ -27,14 +27,10 @@ export default function MonthlyCardsPage() {
     loadData();
   }, []);
 
-  /** 表格列定义 */
+  /** 表格列（已移除 月卡ID / 状态） */
   const columns = [
     {
-      title: "月卡ID",
-      dataIndex: "cardId",
-    },
-    {
-      title: "车辆ID",
+      title: "车牌号",
       dataIndex: "vehicleId",
     },
     {
@@ -50,16 +46,6 @@ export default function MonthlyCardsPage() {
       title: "结束日期",
       dataIndex: "endDate",
       render: (v) => dayjs(v).format("YYYY-MM-DD"),
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      render: (v) => {
-        if (v === "01") return <Tag color="green">启用</Tag>;
-        if (v === "02") return <Tag color="orange">挂失</Tag>;
-        if (v === "03") return <Tag color="red">过期</Tag>;
-        return v;
-      },
     },
     {
       title: "操作",
@@ -95,7 +81,6 @@ export default function MonthlyCardsPage() {
 
   return (
     <>
-      {/* 新增按钮 */}
       <div style={{ marginBottom: 16 }}>
         <Button
           type="primary"
@@ -109,7 +94,6 @@ export default function MonthlyCardsPage() {
         </Button>
       </div>
 
-      {/* 表格 */}
       <Table
         rowKey="cardId"
         columns={columns}
@@ -117,7 +101,6 @@ export default function MonthlyCardsPage() {
         bordered
       />
 
-      {/* 新增 / 编辑弹窗 */}
       <MonthlyCardForm
         open={modalOpen}
         mode={modalMode}
@@ -125,8 +108,16 @@ export default function MonthlyCardsPage() {
         onCancel={() => setModalOpen(false)}
         onOk={async (values) => {
           const body = {
-            ...values,
-            startDate: values.startDate.toISOString(),
+            // ✅ 车牌号 → 后端读取 vehicleId
+            vehicleId: values.vehicleId,
+
+            // ✅ 发行人ID → 前端本地
+            issuerId: localStorage.getItem("userId"),
+
+            // 日期
+            startDate: values.startDate
+              ? values.startDate.toISOString()
+              : undefined,
             endDate: values.endDate.toISOString(),
           };
 
@@ -145,4 +136,5 @@ export default function MonthlyCardsPage() {
     </>
   );
 }
+
 
