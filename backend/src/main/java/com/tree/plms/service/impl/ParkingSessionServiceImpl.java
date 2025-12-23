@@ -6,6 +6,7 @@ import com.tree.plms.model.dto.response.MonthlyStatsDTO;
 import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.*;
 import com.tree.plms.mapper.ParkingSessionMapper;
+import com.tree.plms.mapper.PaymentMapper;
 import com.tree.plms.model.vo.EntryResultVO;
 import com.tree.plms.model.vo.ExitResultVO;
 import com.tree.plms.service.*;
@@ -60,6 +61,9 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
     @Resource
     private PaymentService paymentService;
 
+
+    @Resource
+    private PaymentMapper paymentMapper;
 
 
     @Override
@@ -446,6 +450,17 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         resultVO.setPayTime(now);
         resultVO.setPass(true);
         resultVO.setMessage("支付成功，出场成功");
+
+        // 记录支付流水，供报表统计使用
+        Payment payment = new Payment();
+        payment.setPaymentId("p" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        payment.setSessionId(sessionId);
+        payment.setAmount(payAmount);
+        payment.setPayMethod(payMethod);
+        payment.setPayTime(now);
+        payment.setStatus("01"); // 支付成功
+        paymentMapper.insert(payment);
+
 
         return Result.success(resultVO);
     }

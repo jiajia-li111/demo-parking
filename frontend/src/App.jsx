@@ -9,9 +9,12 @@ import GatesPage from "./pages/gates";
 import AccessEventsPage from "./pages/access-events";
 import ReportsPage from "./pages/reports";
 
-// 使用 parking 相关页面（推荐，因为注释中标记为真实路径）
+// ✅ 注意：这里是 access，不是 parking
+
 import EntryPage from "./pages/parking/entry";
 import ExitPage from "./pages/parking/exit";
+import OwnersPage from "./pages/owners";
+import VehiclesPage from "./pages/vehicles";
 
 function AuthGuard({ children }) {
   const token = localStorage.getItem("token");
@@ -32,6 +35,8 @@ const router = createBrowserRouter([
       { index: true, element: <ProfilePage /> },
       { path: "monthly-cards", element: <MonthlyCardsPage /> },
       { path: "users", element: <UsersPage /> },
+      { path: "owners", element: <OwnersPage /> },
+      { path: "vehicles", element: <VehiclesPage /> },
       { path: "gates", element: <GatesPage /> },
 
       // 🚗 出闸 / 入闸（真实路径）
@@ -49,3 +54,5 @@ const router = createBrowserRouter([
 export default function App() {
   return <RouterProvider router={router} />;
 }
+
+
