@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class CreateMonthlyCardReq {
     @Schema(description = "车牌号", example = "粤B12345")
     @NotBlank(message = "车牌号不能为空")
-    private String licensePlate;
+    private String viehicleId;
 
     @Schema(description = "发卡人ID")
     @NotBlank(message = "发卡人ID不能为空")

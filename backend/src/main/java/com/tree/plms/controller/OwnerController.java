@@ -1,7 +1,9 @@
 package com.tree.plms.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tree.plms.enums.ResultCodeEnum;
 import com.tree.plms.model.dto.response.Result;
+import com.tree.plms.model.entity.MonthlyCard;
 import com.tree.plms.model.entity.Owner;
 import com.tree.plms.service.OwnerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +55,22 @@ public class OwnerController {
     @PostMapping
     @Operation(summary = "新增业主信息", description = "添加新的业主信息")
     public Result<String> addOwner(@RequestBody Owner owner) {
+
+        if (owner.getOwnerId() == null) {
+            QueryWrapper<Owner> queryWrapper = new QueryWrapper<>();
+            queryWrapper.orderByDesc("owner_id");
+            queryWrapper.last("LIMIT 1");
+            Owner lastOwner = ownerService.getBaseMapper().selectOne(queryWrapper);
+            String newOwnerId;
+            if (lastOwner != null) {
+                String lastId = lastOwner.getOwnerId();
+                int num = Integer.parseInt(lastId.substring(1)) + 1;
+                newOwnerId = String.format("o%05d", num);
+            } else {
+                newOwnerId = "o00001";
+            }
+            owner.setOwnerId(newOwnerId);
+        }
         boolean success = ownerService.addOwner(owner);
         if (success) {
             return Result.success("业主添加成功");

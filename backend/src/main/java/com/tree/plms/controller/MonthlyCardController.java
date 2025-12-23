@@ -45,17 +45,17 @@ public class MonthlyCardController {
      */
     @PostMapping
     @Operation(summary = "创建月卡", description = "根据车牌号创建月卡，仅支持业主车")
-    public Result<Boolean> createMonthlyCard(@RequestBody CreateMonthlyCardReq request) {
+    public Result<Boolean> createMonthlyCard(@RequestBody MonthlyCard monthlyCard) {
         // 1. 验证请求参数中的车牌号
-        String licensePlate = request.getLicensePlate();
-        if (licensePlate == null || licensePlate.trim().isEmpty()) {
+        String vehicleId = monthlyCard.getVehicleId();
+        if (vehicleId == null || vehicleId.trim().isEmpty()) {
             return Result.fail(ResultCodeEnum.PARAM_ERROR, "车牌号不能为空");
         }
         
         // 2. 根据车牌号查询车辆信息
-        Vehicle vehicle = vehicleService.getVehicleByLicensePlate(licensePlate);
+        Vehicle vehicle = vehicleService.getVehicleByLicensePlate(vehicleId);
         if (vehicle == null) {
-            return Result.fail(ResultCodeEnum.NOT_FOUND, "该车牌号未绑定车辆");
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "只有业主车才能办理月卡");
         }
         
         // 3. 验证车辆是否为业主车
@@ -69,7 +69,6 @@ public class MonthlyCardController {
             return Result.fail(ResultCodeEnum.PARAM_ERROR, "该车辆已有月卡，请勿重复办理");
         }
 
-        MonthlyCard monthlyCard = new MonthlyCard();
         
         // 5. 生成月卡ID
         if (monthlyCard.getCardId() == null) {
@@ -93,11 +92,9 @@ public class MonthlyCardController {
         }
 
         // 6. 设置车辆ID到月卡对象
-        monthlyCard.setIssuerId(request.getIssuerId());
         monthlyCard.setStatus("01"); // 初始状态为启用
         monthlyCard.setVehicleId(vehicle.getVehicleId());
         monthlyCard.setStartDate(LocalDateTime.now());
-        monthlyCard.setEndDate(request.getEndDate());
 
         // 7. 创建月卡
         boolean success = monthlyCardService.addMonthlyCard(monthlyCard);
