@@ -4,9 +4,9 @@ import dayjs from "dayjs";
 
 import {
   getMonthlyCards,
-  deleteMonthlyCard,
   createMonthlyCard,
   updateMonthlyCard,
+  deleteMonthlyCard,
 } from "../../api/monthlyCards";
 
 import MonthlyCardForm from "./MonthlyCardForm";
@@ -27,27 +27,18 @@ export default function MonthlyCardsPage() {
     loadData();
   }, []);
 
-  /** 表格列定义 */
+  /** 表格列 */
   const columns = [
-    {
-      title: "月卡ID",
-      dataIndex: "cardId",
-    },
-    {
-      title: "车辆ID",
-      dataIndex: "vehicleId",
-    },
-    {
-      title: "发行人ID",
-      dataIndex: "issuerId",
-    },
+    { title: "月卡ID", dataIndex: "cardId" },
+    { title: "车牌号", dataIndex: "licensePlate" },
+    { title: "发行人ID", dataIndex: "issuerId" },
     {
       title: "开始日期",
       dataIndex: "startDate",
       render: (v) => dayjs(v).format("YYYY-MM-DD"),
     },
     {
-      title: "结束日期",
+      title: "到期日期",
       dataIndex: "endDate",
       render: (v) => dayjs(v).format("YYYY-MM-DD"),
     },
@@ -95,7 +86,6 @@ export default function MonthlyCardsPage() {
 
   return (
     <>
-      {/* 新增按钮 */}
       <div style={{ marginBottom: 16 }}>
         <Button
           type="primary"
@@ -109,7 +99,6 @@ export default function MonthlyCardsPage() {
         </Button>
       </div>
 
-      {/* 表格 */}
       <Table
         rowKey="cardId"
         columns={columns}
@@ -117,19 +106,27 @@ export default function MonthlyCardsPage() {
         bordered
       />
 
-      {/* 新增 / 编辑弹窗 */}
       <MonthlyCardForm
         open={modalOpen}
         mode={modalMode}
         initialValues={editingRow}
         onCancel={() => setModalOpen(false)}
         onOk={async (values) => {
-          const body = {
-            ...values,
-            startDate: values.startDate.toISOString(),
-            endDate: values.endDate.toISOString(),
-          };
+          const issuerId = localStorage.getItem("userId");
 
+          if (!issuerId) {
+            message.error("未获取到当前登录用户");
+            return;
+          }
+
+          const body = {
+  licensePlate: values.licensePlate,
+  issuerId,
+  startDate: dayjs().format("YYYY-MM-DDTHH:mm:ss"), // ⭐ 补上
+  endDate: values.endDate.format("YYYY-MM-DDTHH:mm:ss"),
+};
+
+        
           if (modalMode === "create") {
             await createMonthlyCard(body);
             message.success("新增成功");
@@ -145,4 +142,5 @@ export default function MonthlyCardsPage() {
     </>
   );
 }
+
 

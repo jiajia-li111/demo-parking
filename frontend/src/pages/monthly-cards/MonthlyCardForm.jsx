@@ -1,16 +1,30 @@
-import { Modal, Form, Input, DatePicker, Select } from "antd";
+import { Modal, Form, Input, DatePicker, message } from "antd";
+import { useEffect } from "react";
 import dayjs from "dayjs";
 
 export default function MonthlyCardForm({
   open,
-  mode,          // "create" | "edit"
-  initialValues,
+  mode,              // "create" | "edit"
+  initialValues,     // 编辑时传入的行数据
   onOk,
   onCancel,
 }) {
   const [form] = Form.useForm();
-
   const isEdit = mode === "edit";
+
+  /** 弹窗打开时处理表单回填 */
+  useEffect(() => {
+    if (!open) return;
+
+    if (isEdit && initialValues) {
+      form.setFieldsValue({
+        licensePlate: initialValues.licensePlate,
+        endDate: dayjs(initialValues.endDate),
+      });
+    } else {
+      form.resetFields();
+    }
+  }, [open, isEdit, initialValues]);
 
   return (
     <Modal
@@ -21,81 +35,46 @@ export default function MonthlyCardForm({
       destroyOnClose
       onCancel={onCancel}
       onOk={async () => {
-        const values = await form.validateFields();
-        onOk(values);
+        try {
+          const values = await form.validateFields();
+          await onOk(values);      // 👉 只把表单值交给父组件
+          form.resetFields();
+        } catch (e) {
+          message.error("保存失败，请检查输入");
+          console.error(e);
+        }
       }}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={
-          initialValues
-            ? {
-                ...initialValues,
-                startDate: initialValues.startDate
-                  ? dayjs(initialValues.startDate)
-                  : null,
-                endDate: initialValues.endDate
-                  ? dayjs(initialValues.endDate)
-                  : null,
-              }
-            : {}
-        }
-      >
+      <Form form={form} layout="vertical">
         <Form.Item
-          label="月卡ID"
-          name="cardId"
-          rules={[{ required: true, message: "请输入月卡ID" }]}
+          label="车牌号"
+          name="licensePlate"
+          rules={[
+            { required: true, message: "请输入车牌号" },
+            { pattern: /^[\u4e00-\u9fa5][A-Z][A-Z0-9]{5}$/, message: "车牌格式不正确" },
+          ]}
         >
-          <Input disabled={isEdit} />
+          <Input placeholder="例如：粤A12345" />
         </Form.Item>
 
         <Form.Item
-          label="车辆ID"
-          name="vehicleId"
-          rules={[{ required: true, message: "请输入车辆ID" }]}
-        >
-          <Input />
-        </Form.Item>
-
-        <Form.Item
-          label="发行人ID"
-          name="issuerId"
-          rules={[{ required: true, message: "请输入发行人ID" }]}
-        >
-          <Input />
-        </Form.Item>
-
-        <Form.Item
-          label="开始日期"
-          name="startDate"
-          rules={[{ required: true, message: "请选择开始日期" }]}
-        >
-          <DatePicker style={{ width: "100%" }} />
-        </Form.Item>
-
-        <Form.Item
-          label="结束日期"
+          label="到期时间"
           name="endDate"
-          rules={[{ required: true, message: "请选择结束日期" }]}
+          rules={[{ required: true, message: "请选择到期时间" }]}
         >
-          <DatePicker style={{ width: "100%" }} />
-        </Form.Item>
-
-        <Form.Item
-          label="状态"
-          name="status"
-          rules={[{ required: true, message: "请选择状态" }]}
-        >
-          <Select
-            options={[
-              { label: "启用", value: "01" },
-              { label: "挂失", value: "02" },
-              { label: "过期", value: "03" },
-            ]}
+          <DatePicker
+            showTime
+            style={{ width: "100%" }}
+            format="YYYY-MM-DD HH:mm:ss"
+            disabledDate={(current) =>
+              current && current < dayjs().startOf("day")
+            }
           />
         </Form.Item>
       </Form>
     </Modal>
   );
 }
+
+
+

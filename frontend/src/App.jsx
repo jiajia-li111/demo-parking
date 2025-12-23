@@ -10,13 +10,6 @@ import AccessEventsPage from "./pages/access-events";
 import ReportsPage from "./pages/reports";
 
 // ✅ 注意：这里是 access，不是 parking
-import EntryPage from "./pages/access/EntryPage";
-import ExitPage from "./pages/access/ExitPage";
-
-function AuthGuard({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" replace />;
-}
 
 import EntryPage from "./pages/parking/entry";
 import ExitPage from "./pages/parking/exit";
