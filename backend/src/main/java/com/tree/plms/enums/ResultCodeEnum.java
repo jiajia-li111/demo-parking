@@ -30,7 +30,13 @@ public enum ResultCodeEnum {
     VEHICLE_NOT_EXIST(1011, "车辆不存在"),
     VEHICLE_NOT_PARKING(1012, "车辆未在停车场内" ),
      FEE_RULE_NOT_FOUND(1013, "未查询到收费规则"),
-    GATE_NOT_FOUND(1014, "未查询到通道信息");
+    GATE_NOT_FOUND(1014, "未查询到通道信息"),
+    VEHICLE_ADD_FAILED(1015, "车辆添加失败，请重试"),
+     VEHICLE_UPDATE_FAILED(1016, "车辆更新失败，请重试"),
+     VEHICLE_DELETE_FAILED(1017, "车辆删除失败，请重试"),
+    OWNER_NOT_FOUND(1018, "未查询到业主信息"),
+     OWNER_ADD_FAILED(1019, "业主添加失败，请重试"),
+     OWNER_UPDATE_FAILED(1020, "业主更新失败，请重试");
 
     /**
      * 状态码（建议与HTTP状态码对齐，业务码可自定义）

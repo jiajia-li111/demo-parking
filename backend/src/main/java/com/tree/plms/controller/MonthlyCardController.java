@@ -2,6 +2,7 @@ package com.tree.plms.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tree.plms.enums.ResultCodeEnum;
+import com.tree.plms.model.dto.request.CreateMonthlyCardReq;
 import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.MonthlyCard;
 import com.tree.plms.model.entity.Vehicle;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -43,9 +45,9 @@ public class MonthlyCardController {
      */
     @PostMapping
     @Operation(summary = "创建月卡", description = "根据车牌号创建月卡，仅支持业主车")
-    public Result<Boolean> createMonthlyCard(@RequestBody MonthlyCard monthlyCard) {
+    public Result<Boolean> createMonthlyCard(@RequestBody CreateMonthlyCardReq request) {
         // 1. 验证请求参数中的车牌号
-        String licensePlate = monthlyCard.getVehicleId(); // 这里临时使用vehicleId字段接收车牌号
+        String licensePlate = request.getLicensePlate();
         if (licensePlate == null || licensePlate.trim().isEmpty()) {
             return Result.fail(ResultCodeEnum.PARAM_ERROR, "车牌号不能为空");
         }
@@ -66,6 +68,8 @@ public class MonthlyCardController {
         if (!existingCards.isEmpty()) {
             return Result.fail(ResultCodeEnum.PARAM_ERROR, "该车辆已有月卡，请勿重复办理");
         }
+
+        MonthlyCard monthlyCard = new MonthlyCard();
         
         // 5. 生成月卡ID
         if (monthlyCard.getCardId() == null) {
@@ -89,8 +93,12 @@ public class MonthlyCardController {
         }
 
         // 6. 设置车辆ID到月卡对象
+        monthlyCard.setIssuerId(request.getIssuerId());
+        monthlyCard.setStatus("01"); // 初始状态为启用
         monthlyCard.setVehicleId(vehicle.getVehicleId());
-        
+        monthlyCard.setStartDate(LocalDateTime.now());
+        monthlyCard.setEndDate(request.getEndDate());
+
         // 7. 创建月卡
         boolean success = monthlyCardService.addMonthlyCard(monthlyCard);
         return success ? Result.success(true) : Result.fail(ResultCodeEnum.SYSTEM_ERROR, "创建失败");
