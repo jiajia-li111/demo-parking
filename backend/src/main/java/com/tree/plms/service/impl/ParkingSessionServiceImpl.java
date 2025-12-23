@@ -451,17 +451,6 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         resultVO.setPass(true);
         resultVO.setMessage("支付成功，出场成功");
 
-        // 记录支付流水，供报表统计使用
-        Payment payment = new Payment();
-        payment.setPaymentId("p" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
-        payment.setSessionId(sessionId);
-        payment.setAmount(payAmount);
-        payment.setPayMethod(payMethod);
-        payment.setPayTime(now);
-        payment.setStatus("01"); // 支付成功
-        paymentMapper.insert(payment);
-
-
         return Result.success(resultVO);
     }
 
