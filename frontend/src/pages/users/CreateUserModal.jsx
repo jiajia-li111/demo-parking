@@ -31,13 +31,7 @@ export default function CreateUserModal({ open, onClose, onSuccess }) {
       destroyOnClose
     >
       <Form form={form} layout="vertical">
-        <Form.Item
-          label="用户ID"
-          name="userId"
-          rules={[{ required: true, message: "请输入用户ID" }]}
-        >
-          <Input placeholder="如 u00004" />
-        </Form.Item>
+       
 
         <Form.Item
           label="用户名"

@@ -31,6 +31,15 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
 
     @Override
     public boolean addVehicle(Vehicle vehicle) {
+        // 验证并修正检查约束条件
+        if ("01".equals(vehicle.getIsOwnerCar()) && (vehicle.getOwnerId() == null || vehicle.getOwnerId().trim().isEmpty())) {
+            throw new IllegalArgumentException("业主车必须关联业主ID");
+        }
+        if ("02".equals(vehicle.getIsOwnerCar()) && vehicle.getOwnerId() != null && !vehicle.getOwnerId().trim().isEmpty()) {
+            // 非业主车不能有关联业主ID，自动设置为null
+            vehicle.setOwnerId(null);
+        }
+
         if (vehicle.getVehicleId() == null) {
             // 查询当前最大的车辆ID
             QueryWrapper<Vehicle> queryWrapper = new QueryWrapper<>();
@@ -97,6 +106,13 @@ public class VehicleServiceImpl extends ServiceImpl<VehicleMapper, Vehicle> impl
         QueryWrapper<Vehicle> queryWrapper = new QueryWrapper<>();
         queryWrapper.like("license_plate", licensePlate);
         return baseMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public void deleteByOwnerId(String ownerId) {
+        QueryWrapper<Vehicle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("owner_id", ownerId);
+        baseMapper.delete(queryWrapper);
     }
 
     /**

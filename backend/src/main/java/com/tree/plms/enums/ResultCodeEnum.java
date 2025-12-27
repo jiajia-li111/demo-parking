@@ -36,7 +36,9 @@ public enum ResultCodeEnum {
      VEHICLE_DELETE_FAILED(1017, "车辆删除失败，请重试"),
     OWNER_NOT_FOUND(1018, "未查询到业主信息"),
      OWNER_ADD_FAILED(1019, "业主添加失败，请重试"),
-     OWNER_UPDATE_FAILED(1020, "业主更新失败，请重试");
+     OWNER_UPDATE_FAILED(1020, "业主更新失败，请重试"),
+    OWNER_PHONE_EXISTS(1021, "该联系电话已存在，请使用其他联系电话"),
+    ROOM_NO_EXISTS(1022, "该房间号已存在，请使用其他房间号");
 
     /**
      * 状态码（建议与HTTP状态码对齐，业务码可自定义）

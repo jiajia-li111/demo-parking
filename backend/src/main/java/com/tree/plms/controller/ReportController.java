@@ -8,7 +8,6 @@ import com.tree.plms.service.MonthlyCardService;
 import com.tree.plms.service.ParkingSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,11 +23,14 @@ import java.util.List;
 @Tag(name = "报表管理")
 public class ReportController {
 
-    @Autowired
-    private ParkingSessionService parkingSessionService;
+    private final ParkingSessionService parkingSessionService;
 
-    @Autowired
-    private MonthlyCardService monthlyCardService;
+    private final MonthlyCardService monthlyCardService;
+
+    public ReportController(ParkingSessionService parkingSessionService, MonthlyCardService monthlyCardService) {
+        this.parkingSessionService = parkingSessionService;
+        this.monthlyCardService = monthlyCardService;
+    }
 
     /**
      * 获取每日统计数据

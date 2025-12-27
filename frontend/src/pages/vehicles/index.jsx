@@ -6,9 +6,6 @@ import {
   Popconfirm,
   message,
   Tag,
-  Form,
-  Input,
-  Select,
   Card,
 } from "antd";
 import {
@@ -16,13 +13,10 @@ import {
   createVehicle,
   updateVehicle,
   deleteVehicle,
-  getVehiclesByVehicleType,
-  getVehiclesByIsOwnerCar,
-  getVehiclesByOwnerId,
-  searchVehiclesByLicensePlate,
 } from "../../api/vehicles";
 import VehicleFormModal from "./VehicleFormModal";
 
+// 数据映射配置
 const vehicleTypeMap = {
   "01": "小型车",
   "02": "大型车",
@@ -43,13 +37,15 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [searchForm] = Form.useForm();
 
+  // 加载数据
   const loadVehicles = async () => {
     setLoading(true);
     try {
       const list = await getVehicles();
       setData(list || []);
+    } catch (err) {
+      message.error("获取车辆列表失败");
     } finally {
       setLoading(false);
     }
@@ -58,44 +54,6 @@ export default function VehiclesPage() {
   useEffect(() => {
     loadVehicles();
   }, []);
-
-  const handleSearch = async () => {
-    const { licensePlate, vehicleType, isOwnerCar, ownerId } = searchForm.getFieldsValue();
-    setLoading(true);
-    try {
-      if (licensePlate) {
-        const list = await searchVehiclesByLicensePlate(licensePlate);
-        setData(list || []);
-        return;
-      }
-
-      if (vehicleType) {
-        const list = await getVehiclesByVehicleType(vehicleType);
-        setData(list || []);
-        return;
-      }
-
-      if (isOwnerCar) {
-        const list = await getVehiclesByIsOwnerCar(isOwnerCar);
-        setData(list || []);
-        return;
-      }
-
-      if (ownerId) {
-        const list = await getVehiclesByOwnerId(ownerId);
-        setData(list || []);
-        return;
-      }
-
-      await loadVehicles();
-    } catch (err) {
-      if (!err?.success) {
-        setData([]);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const columns = [
     { title: "车辆ID", dataIndex: "vehicleId" },
@@ -154,60 +112,20 @@ export default function VehiclesPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Card>
-        <Form layout="inline" form={searchForm} style={{ gap: 12 }}>
-          <Form.Item label="车牌号" name="licensePlate">
-            <Input placeholder="支持模糊查询" allowClear />
-          </Form.Item>
-          <Form.Item label="车型" name="vehicleType">
-            <Select
-              style={{ width: 160 }}
-              allowClear
-              options={[
-                { value: "01", label: "小型车" },
-                { value: "02", label: "大型车" },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item label="业主车" name="isOwnerCar">
-            <Select
-              style={{ width: 160 }}
-              allowClear
-              options={[
-                { value: "01", label: "是" },
-                { value: "02", label: "否" },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item label="业主ID" name="ownerId">
-            <Input placeholder="关联业主ID" allowClear />
-          </Form.Item>
-          <Space>
-            <Button type="primary" onClick={handleSearch} loading={loading}>
-              查询
-            </Button>
-            <Button
-              onClick={() => {
-                searchForm.resetFields();
-                loadVehicles();
-              }}
-            >
-              重置
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => {
-                setEditing(null);
-                setModalOpen(true);
-              }}
-            >
-              新增车辆
-            </Button>
-          </Space>
-        </Form>
-      </Card>
-
-      <Card>
+      <Card 
+        title="车辆管理" 
+        extra={
+          <Button
+            type="primary"
+            onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
+          >
+            新增车辆
+          </Button>
+        }
+      >
         <Table
           rowKey="vehicleId"
           columns={columns}

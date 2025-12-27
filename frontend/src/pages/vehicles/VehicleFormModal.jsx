@@ -1,5 +1,6 @@
 import { Modal, Form, Input, Select } from "antd";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getOwners } from "../../api/owners";
 
 const vehicleTypeOptions = [
   { value: "01", label: "小型车" },
@@ -18,6 +19,7 @@ const parkingStatusOptions = [
 
 export default function VehicleFormModal({ open, onCancel, onOk, initialValues }) {
   const [form] = Form.useForm();
+  const [ownerOptions, setOwnerOptions] = useState([]);
 
   useEffect(() => {
     if (open) {
@@ -32,6 +34,18 @@ export default function VehicleFormModal({ open, onCancel, onOk, initialValues }
       );
     }
   }, [open, initialValues, form]);
+
+  useEffect(() => {
+    if (!open) return;
+    getOwners().then((list) => {
+      setOwnerOptions(
+        (list || []).map((owner) => ({
+          value: owner.ownerId,
+          label: owner.name,
+        }))
+      );
+    });
+  }, [open]);
 
   return (
     <Modal
@@ -83,21 +97,27 @@ export default function VehicleFormModal({ open, onCancel, onOk, initialValues }
         </Form.Item>
 
         <Form.Item
-          label="关联业主ID"
+          label="业主姓名"
           name="ownerId"
           dependencies={["isOwnerCar"]}
           rules={[
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (getFieldValue("isOwnerCar") === "01" && !value) {
-                  return Promise.reject(new Error("业主车必须填写业主ID"));
+                  return Promise.reject(new Error("业主车必须选择业主"));
                 }
                 return Promise.resolve();
               },
             }),
           ]}
         >
-          <Input placeholder="业主车需填写" />
+          <Select
+            allowClear
+            placeholder="请选择业主姓名"
+            options={ownerOptions}
+            showSearch
+            optionFilterProp="label"
+          />
         </Form.Item>
 
         <Form.Item
@@ -111,3 +131,4 @@ export default function VehicleFormModal({ open, onCancel, onOk, initialValues }
     </Modal>
   );
 }
+

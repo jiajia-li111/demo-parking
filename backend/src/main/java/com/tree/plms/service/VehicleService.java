@@ -82,4 +82,6 @@ public interface VehicleService extends IService<Vehicle> {
      * @return 车辆信息列表
      */
     List<Vehicle> searchVehiclesByLicensePlate(String licensePlate);
+
+    void deleteByOwnerId(String ownerId);
 }

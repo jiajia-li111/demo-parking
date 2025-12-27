@@ -6,12 +6,10 @@ package com.tree.plms.controller;
  */
 
 import com.tree.plms.model.dto.response.Result;
-import com.tree.plms.model.entity.AccessEvent;
 import com.tree.plms.model.vo.AccessEventVO;
 import com.tree.plms.service.AccessEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,8 +22,11 @@ import java.util.List;
 @Tag(name = "过闸事件管理", description = "处理过闸事件的查询、创建等操作")
 public class AccessEventController {
 
-    @Autowired
-    private AccessEventService accessEventService;
+    private final AccessEventService accessEventService;
+
+    public AccessEventController(AccessEventService accessEventService) {
+        this.accessEventService = accessEventService;
+    }
 
     /**
      * 获取所有过闸事件列表（包含车牌号）

@@ -318,7 +318,7 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         LocalDateTime now = LocalDateTime.now();
         String eventId = "e" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-        // 1. 查询停车会话
+        // 查询停车会话
         ParkingSession parkingSession = getParkingSessionById(sessionId);
         // 未查询到有效的停车会话
         if (parkingSession == null) {
@@ -336,7 +336,7 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
         accessEvent.setHandleStatus("02"); // 初始状态为拦截
         accessEvent.setRecognitionResult("01");
 
-        // 3. 模拟支付处理
+        // 模拟支付处理
         boolean paymentSuccess = true; // 实际项目中这里应该调用支付接口
 
         // 支付失败
@@ -345,7 +345,7 @@ public class ParkingSessionServiceImpl extends ServiceImpl<ParkingSessionMapper,
             return Result.fail(ResultCodeEnum.PAYMENT_FAILED);
         }
 
-        // 4. 更新停车会话
+        // file:///D:/xwechat_files/wxid_o2yhw66eockq22_29c5/temp/RWTemp/2025-12/5a62bdba12ee494fe8648c50a64b304b/index.jsx更新停车会话
         parkingSession.setExitTime(now);
         parkingSession.setExitGateId(gateId);
         updateById(parkingSession);

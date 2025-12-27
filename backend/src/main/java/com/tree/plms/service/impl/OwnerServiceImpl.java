@@ -4,6 +4,8 @@ import com.tree.plms.model.entity.Owner;
 import com.tree.plms.mapper.OwnerMapper;
 import com.tree.plms.service.OwnerService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tree.plms.service.VehicleService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import java.util.List;
@@ -28,6 +30,9 @@ public class OwnerServiceImpl extends ServiceImpl<OwnerMapper, Owner> implements
     public Owner getOwnerById(String ownerId) {
         return baseMapper.selectById(ownerId);
     }
+
+    @Autowired
+    private VehicleService vehicleService;
 
     /**
      * 获取所有业主信息列表
@@ -65,6 +70,8 @@ public class OwnerServiceImpl extends ServiceImpl<OwnerMapper, Owner> implements
      */
     @Override
     public boolean deleteOwner(String ownerId) {
+        // 删除车主前先删除其所有车辆
+        vehicleService.deleteByOwnerId(ownerId);
         return removeById(ownerId);
     }
 

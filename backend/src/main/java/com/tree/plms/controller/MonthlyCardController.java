@@ -2,7 +2,6 @@ package com.tree.plms.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tree.plms.enums.ResultCodeEnum;
-import com.tree.plms.model.dto.request.CreateMonthlyCardReq;
 import com.tree.plms.model.dto.response.Result;
 import com.tree.plms.model.entity.MonthlyCard;
 import com.tree.plms.model.entity.Vehicle;

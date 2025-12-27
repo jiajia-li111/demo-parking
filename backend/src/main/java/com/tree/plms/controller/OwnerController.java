@@ -3,12 +3,10 @@ package com.tree.plms.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tree.plms.enums.ResultCodeEnum;
 import com.tree.plms.model.dto.response.Result;
-import com.tree.plms.model.entity.MonthlyCard;
 import com.tree.plms.model.entity.Owner;
 import com.tree.plms.service.OwnerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,8 +20,11 @@ import java.util.List;
 @Tag(name = "业主管理", description = "业主信息的增删改查操作")
 public class OwnerController {
 
-    @Autowired
-    private OwnerService ownerService;
+    private final OwnerService ownerService;
+
+    public OwnerController(OwnerService ownerService) {
+        this.ownerService = ownerService;
+    }
 
     /**
      * 获取所有业主信息
@@ -52,25 +53,34 @@ public class OwnerController {
     /**
      * 新增业主信息
      */
+    /**
+     * 新增业主信息
+     */
     @PostMapping
     @Operation(summary = "新增业主信息", description = "添加新的业主信息")
     public Result<String> addOwner(@RequestBody Owner owner) {
+        // 1. 检查联系电话是否已存在
+        QueryWrapper<Owner> phoneQuery = new QueryWrapper<>();
+        phoneQuery.eq("phone", owner.getPhone());
+        Owner existingOwner = ownerService.getBaseMapper().selectOne(phoneQuery);
+        if (existingOwner != null) {
+            return Result.fail(ResultCodeEnum.OWNER_PHONE_EXISTS);
+        }
+
+        // 2. 检查房号是否已存在
+        QueryWrapper<Owner> roomQuery = new QueryWrapper<>();
+        roomQuery.eq("room_no", owner.getRoomNo());
+        existingOwner = ownerService.getBaseMapper().selectOne(roomQuery);
+        if (existingOwner != null) {
+            return Result.fail(ResultCodeEnum.ROOM_NO_EXISTS);
+        }
 
         if (owner.getOwnerId() == null) {
-            QueryWrapper<Owner> queryWrapper = new QueryWrapper<>();
-            queryWrapper.orderByDesc("owner_id");
-            queryWrapper.last("LIMIT 1");
-            Owner lastOwner = ownerService.getBaseMapper().selectOne(queryWrapper);
-            String newOwnerId;
-            if (lastOwner != null) {
-                String lastId = lastOwner.getOwnerId();
-                int num = Integer.parseInt(lastId.substring(1)) + 1;
-                newOwnerId = String.format("o%05d", num);
-            } else {
-                newOwnerId = "o00001";
-            }
+            // 修复ID生成逻辑以避免重复
+            String newOwnerId = generateUniqueOwnerId();
             owner.setOwnerId(newOwnerId);
         }
+
         boolean success = ownerService.addOwner(owner);
         if (success) {
             return Result.success("业主添加成功");
@@ -78,6 +88,9 @@ public class OwnerController {
             return Result.fail(ResultCodeEnum.OWNER_ADD_FAILED);
         }
     }
+
+
+
 
     /**
      * 更新业主信息
@@ -143,5 +156,38 @@ public class OwnerController {
         } else {
             return Result.fail(ResultCodeEnum.OWNER_NOT_FOUND);
         }
+    }
+
+    private String generateUniqueOwnerId() {
+        QueryWrapper<Owner> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("owner_id");
+        queryWrapper.last("LIMIT 1");
+        Owner lastOwner = ownerService.getBaseMapper().selectOne(queryWrapper);
+
+        if (lastOwner != null) {
+            String lastId = lastOwner.getOwnerId();
+            // 确保ID格式正确
+            if (lastId.startsWith("o") && lastId.length() > 1) {
+                try {
+                    int num = Integer.parseInt(lastId.substring(1)) + 1;
+                    // 检查新ID是否已存在，如果存在则继续递增
+                    String newOwnerId;
+                    do {
+                        newOwnerId = String.format("o%05d", num);
+                        Owner existing = ownerService.getBaseMapper().selectOne(
+                                new QueryWrapper<Owner>().eq("owner_id", newOwnerId)
+                        );
+                        if (existing == null) {
+                            return newOwnerId;
+                        }
+                        num++;
+                    } while (true);
+                } catch (NumberFormatException e) {
+                    // 如果解析失败，使用默认ID
+                    return "o00001";
+                }
+            }
+        }
+        return "o00001";
     }
 }

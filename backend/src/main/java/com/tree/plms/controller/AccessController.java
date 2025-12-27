@@ -17,8 +17,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "出闸入闸管理")
 public class AccessController {
 
-    @Autowired
-    private ParkingSessionService parkingSessionService;
+    private final ParkingSessionService parkingSessionService;
+
+    public AccessController(ParkingSessionService parkingSessionService) {
+        this.parkingSessionService = parkingSessionService;
+    }
 
 
     /**
